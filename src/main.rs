@@ -8,6 +8,8 @@ mod memory;
 mod panic_wait;
 mod runtime_init;
 
+mod compiler;
+
 unsafe fn kernel_init() -> ! {
     panic!()
 }
