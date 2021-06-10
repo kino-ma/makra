@@ -36,6 +36,7 @@ QEMU_MISSING_STRING = "This board is not yet supported for QEMU."
 RUSTFLAGS          = -C link-arg=-T$(LINKER_FILE) $(RUSTC_MISC_ARGS)
 RUSTFLAGS_PEDANTIC = $(RUSTFLAGS) -D warnings -D missing_docs
 
+
 FEATURES      = --features bsp_$(BSP)
 COMPILER_ARGS = --target=$(TARGET) \
     $(FEATURES)                    \
@@ -60,7 +61,7 @@ DOCKER_TOOLS = $(DOCKER_CMD) $(DOCKER_IMAGE)
 
 EXEC_QEMU = $(QEMU_BINARY) -M $(QEMU_MACHINE_TYPE)
 
-.PHONY: all $(KERNEL_ELF) $(KERNEL_BIN) doc qemu clippy clean readelf objdump nm check
+.PHONY: all $(KERNEL_ELF) $(KERNEL_BIN) doc qemu clippy clean readelf objdump nm check setup-dev-env
 
 all: $(KERNEL_BIN)
 
@@ -109,3 +110,10 @@ nm: $(KERNEL_ELF)
 # For rust-analyzer
 check:
 	@RUSTFLAGS="$(RUSTFLAGS)" $(CHECK_CMD) --message-format=json
+
+setup-dev-env:
+	rustup component add llvm-tools-preview
+	cargo install cargo-binutils rustfilt
+	rustup override set nightly
+	rustup target add aarch64-unknown-none-softfloat
+	sed -i -e s/feature\(const_fn\)/feature\(const_fn_trait_bound\)/ ~/.cargo/registry/src/github.com-*/tock-registers-0.6.0/src/lib.rs
