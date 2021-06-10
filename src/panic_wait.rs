@@ -1,4 +1,4 @@
-use crate::{cpu, println};
+use crate::cpu;
 use core::panic::PanicInfo;
 
 #[panic_handler]

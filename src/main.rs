@@ -6,6 +6,9 @@
 #![feature(panic_info_message)]
 
 #[cfg(not(test))]
+#[macro_use]
+mod print;
+#[cfg(not(test))]
 mod bsp;
 #[cfg(not(test))]
 mod cpu;
@@ -17,8 +20,6 @@ mod panic_wait;
 mod runtime_init;
 #[cfg(not(test))]
 mod console;
-#[cfg(not(test))]
-mod print;
 
 mod compiler;
 
