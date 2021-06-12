@@ -21,7 +21,7 @@ mod runtime_init;
 #[cfg(not(test))]
 mod console;
 
-mod compiler;
+extern crate compiler;
 
 unsafe fn kernel_init() -> ! {
     println!("Hello QEMU!");

@@ -3,6 +3,10 @@
 version = 3
 
 [[package]]
+name = "compiler"
+version = "0.1.0"
+
+[[package]]
 name = "cortex-a"
 version = "5.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -15,6 +19,7 @@ dependencies = [
 name = "makra"
 version = "0.1.0"
 dependencies = [
+ "compiler",
  "cortex-a",
 ]
 

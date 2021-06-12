@@ -17,6 +17,7 @@ name = "kernel"
 path = "src/main.rs"
 
 [dependencies]
+compiler = { path = "./compiler" }
 
 [target.'cfg(target_arch = "aarch64")'.dependencies]
 cortex-a = { version = "5.x.x" }
