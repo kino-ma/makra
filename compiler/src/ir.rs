@@ -1,13 +1,37 @@
 /// Intermidate representation
-pub struct IR {
+pub struct IR<'a> {
     /// Raw insturction before converted to IR
-    raw_instruction: [u8],
+    raw_instruction: &'a [u8],
     typ: IRType,
 }
 
 /// What kind of entry
 pub enum IRType {
+    I32,
+    I64,
+    F32,
+    F64,
+}
 
+impl<'a> IR<'a> {
+    pub fn new(raw_instruction: &'a [u8]) -> Self {
+        Self {
+            raw_instruction,
+            typ: IRType::I32,
+        }
+    }
+}
+
+pub struct Function {
+
+}
+
+impl Function {
+    pub fn new() -> Self {
+        Self {
+
+        }
+    }
 }
 
 #[cfg(test)]
