@@ -13,24 +13,30 @@ impl Parser {
         }
     }
 
-    pub fn parse(self, bytes: &[u8]) -> Result<Module, ()> {
+    pub fn parse(&self, bytes: &[u8]) -> Result<Module, ()> {
         let bytes_iter = bytes.iter().enumerate();
 
         // Magic number (4 bytes) and wasm version (4bytes)
         // TODO: ちゃんとパースする
         let mut sections = bytes_iter.skip(4 + 4);
 
-        while let section = self.parse_section(&mut sections)? {
+        loop {
             // TODO: push to a vector or something
-            section;
+            match self.parse_section(&mut sections) {
+                Ok(_) => (),
+                Err(()) => break
+            }
         }
 
         Ok(Module::new())
     }
 
-    pub fn parse_section<I: Iterator>(self, sections: &mut I) -> Result<Section, ()> {
-        sections.fold((), |_, _| ());
-        Ok(Section::new())
+    pub fn parse_section<I: Iterator>(&self, sections: &mut I) -> Result<Section, ()> {
+        if sections.count() > 0 {
+            Ok(Section::new())
+        } else {
+            Err(())
+        }
     }
 }
 
