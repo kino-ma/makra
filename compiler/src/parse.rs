@@ -1,4 +1,4 @@
-use crate::ir::{IR, Function, IRType::*};
+use crate::ir::{Module, Section, IR, Function, IRType::*};
 
 pub struct Parser {
     func: Function
@@ -13,8 +13,24 @@ impl Parser {
         }
     }
 
-    pub fn parse(self, function_body: &[u8]) -> Result<(), ()> {
-        Ok(())
+    pub fn parse(self, bytes: &[u8]) -> Result<Module, ()> {
+        let bytes_iter = bytes.iter().enumerate();
+
+        // Magic number (4 bytes) and wasm version (4bytes)
+        // TODO: ちゃんとパースする
+        let mut sections = bytes_iter.skip(4 + 4);
+
+        while let section = self.parse_section(&mut sections)? {
+            // TODO: push to a vector or something
+            section;
+        }
+
+        Ok(Module::new())
+    }
+
+    pub fn parse_section<I: Iterator>(self, sections: &mut I) -> Result<Section, ()> {
+        sections.fold((), |_, _| ());
+        Ok(Section::new())
     }
 }
 

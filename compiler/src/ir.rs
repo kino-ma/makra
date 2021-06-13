@@ -1,3 +1,29 @@
+/// Intermidate representation of a WebAssembly Module
+pub struct Module {
+
+}
+
+impl Module {
+    pub fn new() -> Self {
+        Module {
+
+        }
+    }
+}
+
+/// Intermidate representation of a section
+pub struct Section {
+
+}
+
+impl Section {
+    pub fn new() -> Self {
+        Self {
+
+        }
+    }
+}
+
 /// Intermidate representation
 pub struct IR<'a> {
     /// Raw insturction before converted to IR
