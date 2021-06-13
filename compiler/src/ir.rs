@@ -27,8 +27,8 @@ impl Section {
 /// Intermidate representation
 pub struct IR<'a> {
     /// Raw insturction before converted to IR
-    raw_instruction: &'a [u8],
-    typ: IRType,
+    _raw_instruction: &'a [u8],
+    _typ: IRType,
 }
 
 /// What kind of entry
@@ -42,8 +42,8 @@ pub enum IRType {
 impl<'a> IR<'a> {
     pub fn new(raw_instruction: &'a [u8]) -> Self {
         Self {
-            raw_instruction,
-            typ: IRType::I32,
+            _raw_instruction: raw_instruction,
+            _typ: IRType::I32,
         }
     }
 }

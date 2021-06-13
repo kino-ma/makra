@@ -1,7 +1,7 @@
-use crate::ir::{Module, Section, IR, Function, IRType::*};
+use crate::ir::{Module, Section, Function};
 
 pub struct Parser {
-    func: Function
+    _func: Function
 }
 
 impl Parser {
@@ -9,7 +9,7 @@ impl Parser {
         let func = Function::new();
 
         Self {
-            func,
+            _func: func,
         }
     }
 
@@ -44,7 +44,6 @@ impl Parser {
 extern crate std;
 mod test {
     extern crate std;
-    use super::*;
 
     #[test]
     fn read_wasm() {
