@@ -21,7 +21,27 @@ impl Parser {
 #[cfg(test)]
 extern crate std;
 mod test {
+    extern crate std;
     use super::*;
+
+    #[test]
+    fn read_wasm() {
+        use std::fs;
+        use std::string::String;
+        use std::io::Read;
+
+        let wasm_binary = {
+            let mut f = fs::File::open("wasm-binaries/test.wasm").expect("failed to open wasm: ");
+            let mut buf = String::new();
+            f.read_to_string(&mut buf);
+
+            buf
+        };
+
+        let parser = Parser::new();
+
+        parser.parse(wasm_binary.as_bytes());
+    }
 
     #[test]
     fn add_two_numbers() {
