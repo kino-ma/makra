@@ -13,13 +13,41 @@ impl Module {
 
 /// Intermidate representation of a section
 pub struct Section {
-
+    typ: SectionType,
 }
 
 impl Section {
-    pub fn new() -> Self {
-        Self {
+    pub fn from_bytes<I: Iterator<Item = u8>>(code: u8, size: u8, bytes: I) -> Result<Self, ()> {
+        let typ = code;
+        bytes.for_each(|_| ());
 
+        Ok(Self {
+            typ
+        })
+    }
+}
+
+#[derive(FromPrimitive)]
+pub enum SecitonType {
+    Custom = 0,
+    Type = 1,
+    Import = 2,
+    Function = 3,
+    Table = 4,
+    Memory = 5,
+    Global = 6,
+    Export = 7,
+    Start = 8,
+    Element = 9,
+    Code = 10,
+    Data = 11,
+    DataCount = 12,
+}
+
+impl From<u8> for SecitonType {
+    fn from(code: u8) -> Self {
+        match code {
+            0 => Self::Custom,
         }
     }
 }

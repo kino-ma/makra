@@ -31,12 +31,13 @@ impl Parser {
         Ok(Module::new())
     }
 
-    pub fn parse_section<I: Iterator>(&self, sections: &mut I) -> Result<Section, ()> {
-        if sections.count() > 0 {
-            Ok(Section::new())
-        } else {
-            Err(())
-        }
+    pub fn parse_section<I: Iterator<Item = u8>>(&self, sections: &mut I) -> Result<Section, ()> {
+        let section_code = sections.next().ok_or(())?;
+        let section_size = sections.next().ok_or(())?;
+
+        let section = Section::from_bytes(section_code, section_size, &mut sections);
+
+        Err(())
     }
 }
 
