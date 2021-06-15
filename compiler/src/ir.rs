@@ -1,3 +1,6 @@
+use num_derive::FromPrimitive;
+use num::FromPrimitive;
+
 /// Intermidate representation of a WebAssembly Module
 pub struct Module {
 
@@ -18,7 +21,7 @@ pub struct Section {
 
 impl Section {
     pub fn from_bytes<I: Iterator<Item = u8>>(code: u8, size: u8, bytes: I) -> Result<Self, ()> {
-        let typ = code;
+        let typ = FromPrimitive::from_u8(code).ok_or(())?;
         bytes.for_each(|_| ());
 
         Ok(Self {
@@ -28,7 +31,7 @@ impl Section {
 }
 
 #[derive(FromPrimitive)]
-pub enum SecitonType {
+pub enum SectionType {
     Custom = 0,
     Type = 1,
     Import = 2,
@@ -42,14 +45,6 @@ pub enum SecitonType {
     Code = 10,
     Data = 11,
     DataCount = 12,
-}
-
-impl From<u8> for SecitonType {
-    fn from(code: u8) -> Self {
-        match code {
-            0 => Self::Custom,
-        }
-    }
 }
 
 /// Intermidate representation

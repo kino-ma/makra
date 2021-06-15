@@ -14,11 +14,11 @@ impl Parser {
     }
 
     pub fn parse(&self, bytes: &[u8]) -> Result<Module, ()> {
-        let bytes_iter = bytes.iter().enumerate();
+        let bytes_iter = bytes.iter();
 
         // Magic number (4 bytes) and wasm version (4bytes)
         // TODO: ちゃんとパースする
-        let mut sections = bytes_iter.skip(4 + 4);
+        let mut sections = bytes_iter.skip(4 + 4).cloned();
 
         loop {
             // TODO: push to a vector or something
@@ -35,7 +35,7 @@ impl Parser {
         let section_code = sections.next().ok_or(())?;
         let section_size = sections.next().ok_or(())?;
 
-        let section = Section::from_bytes(section_code, section_size, &mut sections);
+        let section = Section::from_bytes(section_code, section_size, sections);
 
         Err(())
     }
@@ -51,6 +51,7 @@ mod test {
         use std::fs;
         use std::string::String;
         use std::io::Read;
+        use super::Parser;
 
         let wasm_binary = {
             let mut f = fs::File::open("wasm-binaries/test.wasm").expect("failed to open wasm: ");
@@ -67,6 +68,9 @@ mod test {
 
     #[test]
     fn add_two_numbers() {
+        use super::Parser;
+        use crate::ir::IR;
+
         let function_body = [0x41, 0x0a, 0x41, 0x14, 0x6a];
         let parser = Parser::new();
 
