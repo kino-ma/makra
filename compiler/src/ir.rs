@@ -20,9 +20,12 @@ pub struct Section {
 }
 
 impl Section {
-    pub fn from_bytes<I: Iterator<Item = u8>>(code: u8, size: u8, bytes: I) -> Result<Self, ()> {
+    pub fn from_bytes<I: Iterator<Item = u8>>(bytes: &mut I) -> Result<Self, ()> {
+        let code = bytes.next().ok_or(())?;
+        // TODO decode leb28 (size, u32)
+        // For implementingparsers :eyes: https://docs.rs/nom/6.1.2/nom/
+
         let typ = FromPrimitive::from_u8(code).ok_or(())?;
-        bytes.for_each(|_| ());
 
         Ok(Self {
             typ

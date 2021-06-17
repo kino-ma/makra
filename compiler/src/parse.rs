@@ -1,4 +1,5 @@
 use crate::ir::{Module, Section, Function};
+use num_traits::{Unsigned, NumCast};
 
 pub struct Parser {
     _func: Function
@@ -32,13 +33,26 @@ impl Parser {
     }
 
     pub fn parse_section<I: Iterator<Item = u8>>(&self, sections: &mut I) -> Result<Section, ()> {
-        let section_code = sections.next().ok_or(())?;
-        let section_size = sections.next().ok_or(())?;
-
-        let section = Section::from_bytes(section_code, section_size, sections);
-
+        let section = Section::from_bytes(sections);
         Err(())
     }
+}
+
+pub fn decode_uleb128<N: Unsigned + NumCast, I: Iterator<Item = u8>>(bytes: &mut I) -> Result<N, ()> {
+    let mut result = 0;
+    let mut shift = 0;
+    loop {
+        let byte = bytes.next().ok_or(())?;
+        // Rust alerts normal `<<` operator on overflow
+        result |= (byte & 0b0111_1111).checked_shl(shift).unwrap_or(0);
+        if byte & 0b1000_0000 == 0 {
+            break;
+        }
+        shift += 7;
+    }
+
+    let res: N = num_traits::cast::cast(result).ok_or(())?;
+    return Ok(res);
 }
 
 #[cfg(test)]
@@ -76,9 +90,21 @@ mod test {
 
         let res = parser.parse(&function_body).expect("failed to parse");
         let expected = {
-            let it1 = IR::new(&function_body[0..2]);
-            let it1 = IR::new(&function_body[2..5]);
-            let it1 = IR::new(&function_body[..]);
+            let ir1 = IR::new(&function_body[0..2]);
+            let ir2 = IR::new(&function_body[2..5]);
+            let ir3 = IR::new(&function_body[..]);
         };
     }
+
+    /*#[test]
+    fn should_decode_uleb128() {
+        use super::decode_uleb128;
+
+        let bytes = [0xE5 as u8, 0x8E, 0x86];
+        let expected = 624485;
+
+        let result: u32 = decode_uleb128(&mut bytes.iter().cloned()).expect("couldn't decode");
+
+        assert_eq!(result, expected);
+    }*/
 }
