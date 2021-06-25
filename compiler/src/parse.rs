@@ -5,7 +5,8 @@ use nom::{IResult};
 use nom::error::{ParseError, ContextError};
 use nom::bytes::streaming;
 use nom::sequence::{tuple};
-use nom::multi::{fold_many1};
+use nom::combinator::{map};
+use nom::multi;
 use nom_leb128::{leb128_i32, leb128_u32, leb128_i64};
 
 pub fn parser<'a, E: ParseError<&'a [u8]> + ContextError<&'a [u8]>>(
@@ -23,23 +24,22 @@ fn module<'a, E: ParseError<&'a [u8]> + ContextError<&'a [u8]>>(
     // and following 4bytes are wasm version
     let wasm_version = streaming::tag(&[0x01, 0x00, 0x00, 0x00]);
 
-    let sections = fold_many1(section);
+    let sections = multi::many1(section);
 
-    Ok((i, i))
+    tuple((magic_number, wasm_version, sections))(i)
 }
 
 fn section<'a, E: ParseError<&'a [u8]> + ContextError<&'a [u8]>>(
   i: &'a [u8],
 ) -> IResult<&'a [u8], &'a [u8], E> {
-    TODO: implement parser
-    let code = streaming::take(1usize)
-    let size = leb128_u32();
-    TODO: add global allocator, and use many_SOMETHING
-    let content = 
+    let code = streaming::take(1usize);
+    let size = leb128_u32;
+    let content = multi::many1(streaming::take(1usize));
 
-    //tuple((code, size, content));
-
-    Ok((i, i))
+    map(
+        tuple((code, size, content)),
+        Section
+    )(i)
 }
 
 pub struct Parser {

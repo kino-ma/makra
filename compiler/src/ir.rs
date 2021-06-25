@@ -15,11 +15,9 @@ impl Module {
 }
 
 /// Intermidate representation of a section
-pub struct Section {
-    typ: SectionType,
-}
+pub struct Section<'a>(u8, u32, &'a [u8]);
 
-impl Section {
+/*impl Section {
     pub fn from_bytes<I: Iterator<Item = u8>>(bytes: &mut I) -> Result<Self, ()> {
         let code = bytes.next().ok_or(())?;
         // TODO decode leb28 (size, u32)
@@ -31,7 +29,7 @@ impl Section {
             typ
         })
     }
-}
+}*/
 
 #[derive(FromPrimitive)]
 pub enum SectionType {
