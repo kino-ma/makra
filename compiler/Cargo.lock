@@ -43,6 +43,7 @@ name = "compiler"
 version = "0.1.0"
 dependencies = [
  "nom",
+ "nom-leb128",
  "num",
  "num-derive",
  "num-traits",
@@ -84,6 +85,17 @@ dependencies = [
  "lexical-core",
  "memchr",
  "version_check",
+]
+
+[[package]]
+name = "nom-leb128"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bf5019475746728a89ebe0bad04a243a512dba8c9486b2707b99e3b52e82c5c2"
+dependencies = [
+ "arrayvec",
+ "nom",
+ "num-traits",
 ]
 
 [[package]]

@@ -1,13 +1,45 @@
 use crate::ir::{Module, Section, Function};
 use num_traits::{Unsigned, NumCast};
 
-use nom::{IResult, error::{ParseError, ContextError}};
+use nom::{IResult};
+use nom::error::{ParseError, ContextError};
+use nom::bytes::streaming;
+use nom::sequence::{tuple};
+use nom::multi::{fold_many1};
+use nom_leb128::{leb128_i32, leb128_u32, leb128_i64};
 
-pub fn parser<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
-  i: &'a str,
-) -> IResult<&'a str, (), E> 
+pub fn parser<'a, E: ParseError<&'a [u8]> + ContextError<&'a [u8]>>(
+  i: &'a [u8],
+) -> IResult<&'a [u8], (), E> 
 {
     Ok((i, ()))
+}
+
+fn module<'a, E: ParseError<&'a [u8]> + ContextError<&'a [u8]>>(
+  i: &'a [u8],
+) -> IResult<&'a [u8], &'a [u8], E> {
+    // first 4 bytes are wasm's magic number "\0asm"
+    let magic_number = streaming::tag(b"\0asm");
+    // and following 4bytes are wasm version
+    let wasm_version = streaming::tag(&[0x01, 0x00, 0x00, 0x00]);
+
+    let sections = fold_many1(section);
+
+    Ok((i, i))
+}
+
+fn section<'a, E: ParseError<&'a [u8]> + ContextError<&'a [u8]>>(
+  i: &'a [u8],
+) -> IResult<&'a [u8], &'a [u8], E> {
+    TODO: implement parser
+    let code = streaming::take(1usize)
+    let size = leb128_u32();
+    TODO: add global allocator, and use many_SOMETHING
+    let content = 
+
+    //tuple((code, size, content));
+
+    Ok((i, i))
 }
 
 pub struct Parser {
