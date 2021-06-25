@@ -1,6 +1,15 @@
 use crate::ir::{Module, Section, Function};
 use num_traits::{Unsigned, NumCast};
 
+use nom::{IResult, error::{ParseError, ContextError}};
+
+pub fn parser<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
+  i: &'a str,
+) -> IResult<&'a str, (), E> 
+{
+    Ok((i, ()))
+}
+
 pub struct Parser {
     _func: Function
 }
