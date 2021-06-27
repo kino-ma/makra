@@ -1,7 +1,7 @@
 use num_traits::{Unsigned, NumCast};
 
 use nom::{IResult};
-use nom::error::{ParseError, ContextError, ErrorKind};
+use nom::error::{context, ParseError, ContextError};
 use nom::bytes::streaming;
 use nom::number::streaming::u8 as onebyte;
 use nom::sequence::{tuple};
@@ -28,7 +28,10 @@ fn module<'a, E: ParseError<&'a [u8]> + ContextError<&'a [u8]>>(
 
     let sections = multi::many1(section);
 
-    map(tuple((magic_number, wasm_version, sections)), Module::new)(i)
+    context(
+        "module",
+        map(tuple((magic_number, wasm_version, sections)), Module::new)
+    )(i)
 }
 
 fn section<'a, E: ParseError<&'a [u8]> + ContextError<&'a [u8]>>(
@@ -38,9 +41,12 @@ fn section<'a, E: ParseError<&'a [u8]> + ContextError<&'a [u8]>>(
     let size = leb128_u32;
     let content = multi::many1(onebyte);
 
-    map(
-        tuple((code, size, content)),
-        Section::new,
+    context(
+        "section",
+        map(
+            tuple((code, size, content)),
+            Section::new,
+        ),
     )(i)
 }
 
@@ -87,8 +93,8 @@ impl Parser {
 extern crate std;
 mod test {
     extern crate std;
-    
-    use nom::error::Error;
+
+    use nom::error::{VerboseError, convert_error};
 
     use super::*;
 
@@ -98,8 +104,6 @@ mod test {
         use std::string::String;
         use std::io::Read;
 
-        use nom::combinator::cut;
-
         let wasm_binary = {
             let mut f = fs::File::open("wasm-binaries/test.wasm").expect("failed to open wasm: ");
             let mut buf = String::new();
@@ -107,8 +111,8 @@ mod test {
 
             buf
         };
-
-        cut::<_, _, Error<_>, _>(module)(wasm_binary.as_bytes()).unwrap();
+        let parsed_module = module::<'_, VerboseError<&[u8]>>(wasm_binary.as_bytes());
+        std::println!("{:#?}", parsed_module);
     }
 
     /*#[test]

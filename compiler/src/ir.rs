@@ -3,6 +3,7 @@ pub(crate) use alloc::vec::Vec;
 use num_derive::FromPrimitive;
 
 /// Intermidate representation of a WebAssembly Module
+#[cfg_attr(test, derive(Debug))]
 pub struct Module {
     version: u32,
     sections: Vec<Section>,
@@ -18,6 +19,7 @@ impl Module {
 }
 
 /// Intermidate representation of a section
+#[cfg_attr(test, derive(Debug))]
 pub struct Section {
     code: u8,
     size: u32,
