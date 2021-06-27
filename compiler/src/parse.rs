@@ -1,7 +1,7 @@
 use num_traits::{Unsigned, NumCast};
 
 use nom::{IResult};
-use nom::error::{ParseError, ContextError};
+use nom::error::{ParseError, ContextError, ErrorKind};
 use nom::bytes::streaming;
 use nom::number::streaming::u8 as onebyte;
 use nom::sequence::{tuple};
@@ -83,34 +83,22 @@ impl Parser {
     }
 }
 
-pub fn decode_uleb128<N: Unsigned + NumCast, I: Iterator<Item = u8>>(bytes: &mut I) -> Result<N, ()> {
-    let mut result = 0;
-    let mut shift = 0;
-    loop {
-        let byte = bytes.next().ok_or(())?;
-        // Rust alerts normal `<<` operator on overflow
-        result |= (byte & 0b0111_1111).checked_shl(shift).unwrap_or(0);
-        if byte & 0b1000_0000 == 0 {
-            break;
-        }
-        shift += 7;
-    }
-
-    let res: N = num_traits::cast::cast(result).ok_or(())?;
-    return Ok(res);
-}
-
 #[cfg(test)]
 extern crate std;
 mod test {
     extern crate std;
+    
+    use nom::error::Error;
+
+    use super::*;
 
     #[test]
-    fn read_wasm() {
+    fn parse_module() {
         use std::fs;
         use std::string::String;
         use std::io::Read;
-        use super::Parser;
+
+        use nom::combinator::cut;
 
         let wasm_binary = {
             let mut f = fs::File::open("wasm-binaries/test.wasm").expect("failed to open wasm: ");
@@ -120,25 +108,7 @@ mod test {
             buf
         };
 
-        let parser = Parser::new();
-
-        parser.parse(wasm_binary.as_bytes());
-    }
-
-    #[test]
-    fn add_two_numbers() {
-        use super::Parser;
-        use crate::ir::IR;
-
-        let function_body = [0x41, 0x0a, 0x41, 0x14, 0x6a];
-        let parser = Parser::new();
-
-        let res = parser.parse(&function_body).expect("failed to parse");
-        let expected = {
-            let ir1 = IR::new(&function_body[0..2]);
-            let ir2 = IR::new(&function_body[2..5]);
-            let ir3 = IR::new(&function_body[..]);
-        };
+        cut::<_, _, Error<_>, _>(module)(wasm_binary.as_bytes()).unwrap();
     }
 
     /*#[test]
