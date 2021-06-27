@@ -23,30 +23,32 @@ fn module<'a, E: ParseError<&'a [u8]> + ContextError<&'a [u8]>>(
     // first 4 bytes are wasm's magic number "\0asm"
     let magic_number = streaming::tag(b"\0asm");
     // and following 4bytes are wasm version
-    let wasm_version = streaming::tag(&[0x01, 0x00, 0x00, 0x00]);
+    let wasm_version = leb128_u32;
 
     let sections = multi::many1(section);
 
-    map(tuple((magic_number, wasm_version, sections)), Module)(i)
+    map(tuple((magic_number, wasm_version, sections)), Module::new)(i)
 }
 
 fn section<'a, E: ParseError<&'a [u8]> + ContextError<&'a [u8]>>(
   i: &'a [u8],
-) -> IResult<&'a [u8], &'a [u8], E> {
+) -> IResult<&'a [u8], Section, E> {
     let code = streaming::take(1usize);
     let size = leb128_u32;
     let content = multi::many1(streaming::take(1usize));
 
     map(
         tuple((code, size, content)),
-        Section,
+        Section::<'_>,
     )(i)
 }
 
+#[cfg(hoge)]
 pub struct Parser {
     _func: Function
 }
 
+#[cfg(hoge)]
 impl Parser {
     pub fn new() -> Self {
         let func = Function::new();
