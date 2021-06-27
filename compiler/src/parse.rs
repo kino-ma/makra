@@ -1,4 +1,3 @@
-use crate::ir::{Module, Section, Function};
 use num_traits::{Unsigned, NumCast};
 
 use nom::{IResult};
@@ -9,6 +8,8 @@ use nom::combinator::{map};
 use nom::multi;
 use nom_leb128::{leb128_i32, leb128_u32, leb128_i64};
 
+use crate::ir::{Module, Section, Function};
+
 pub fn parser<'a, E: ParseError<&'a [u8]> + ContextError<&'a [u8]>>(
   i: &'a [u8],
 ) -> IResult<&'a [u8], (), E> 
@@ -18,7 +19,7 @@ pub fn parser<'a, E: ParseError<&'a [u8]> + ContextError<&'a [u8]>>(
 
 fn module<'a, E: ParseError<&'a [u8]> + ContextError<&'a [u8]>>(
   i: &'a [u8],
-) -> IResult<&'a [u8], &'a [u8], E> {
+) -> IResult<&'a [u8], Module, E> {
     // first 4 bytes are wasm's magic number "\0asm"
     let magic_number = streaming::tag(b"\0asm");
     // and following 4bytes are wasm version
@@ -26,7 +27,7 @@ fn module<'a, E: ParseError<&'a [u8]> + ContextError<&'a [u8]>>(
 
     let sections = multi::many1(section);
 
-    tuple((magic_number, wasm_version, sections))(i)
+    map(tuple((magic_number, wasm_version, sections)), Module)(i)
 }
 
 fn section<'a, E: ParseError<&'a [u8]> + ContextError<&'a [u8]>>(
@@ -38,7 +39,7 @@ fn section<'a, E: ParseError<&'a [u8]> + ContextError<&'a [u8]>>(
 
     map(
         tuple((code, size, content)),
-        Section
+        Section,
     )(i)
 }
 

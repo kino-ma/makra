@@ -1,18 +1,10 @@
+pub(crate) use alloc::vec::Vec;
+
 use num_derive::FromPrimitive;
 use num::FromPrimitive;
 
 /// Intermidate representation of a WebAssembly Module
-pub struct Module {
-
-}
-
-impl Module {
-    pub fn new() -> Self {
-        Module {
-
-        }
-    }
-}
+pub struct Module<'a>(u8, u32, Vec<Section<'a>>);
 
 /// Intermidate representation of a section
 pub struct Section<'a>(u8, u32, &'a [u8]);
