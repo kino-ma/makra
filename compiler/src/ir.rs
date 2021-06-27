@@ -3,13 +3,13 @@ pub(crate) use alloc::vec::Vec;
 use num_derive::FromPrimitive;
 
 /// Intermidate representation of a WebAssembly Module
-pub struct Module<'a> {
+pub struct Module {
     version: u32,
-    sections: Vec<Section<'a>>,
+    sections: Vec<Section>,
 }
 
-impl<'a> Module<'a> {
-    pub fn new((_magic, version, sections): (&[u8], u32, Vec<Section<'a>>)) -> Self {
+impl Module {
+    pub fn new((_magic, version, sections): (&[u8], u32, Vec<Section>)) -> Self {
         Self {
             version,
             sections,
@@ -18,21 +18,21 @@ impl<'a> Module<'a> {
 }
 
 /// Intermidate representation of a section
-pub struct Section<'a>(u8, u32, &'a [u8]);
+pub struct Section {
+    code: u8,
+    size: u32,
+    content: Vec<u8>,
+}
 
-/*impl Section {
-    pub fn from_bytes<I: Iterator<Item = u8>>(bytes: &mut I) -> Result<Self, ()> {
-        let code = bytes.next().ok_or(())?;
-        // TODO decode leb28 (size, u32)
-        // For implementingparsers :eyes: https://docs.rs/nom/6.1.2/nom/
-
-        let typ = FromPrimitive::from_u8(code).ok_or(())?;
-
-        Ok(Self {
-            typ
-        })
+impl Section {
+    pub fn new((code, size, content): (u8, u32, Vec<u8>)) -> Self {
+        Self {
+            code,
+            size,
+            content
+        }
     }
-}*/
+}
 
 #[derive(FromPrimitive)]
 pub enum SectionType {
