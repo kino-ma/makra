@@ -103,27 +103,19 @@ mod test {
         use std::fs;
         use std::string::String;
         use std::io::Read;
+        use std::vec::Vec;
 
         let wasm_binary = {
             let mut f = fs::File::open("wasm-binaries/test.wasm").expect("failed to open wasm: ");
-            let mut buf = String::new();
-            f.read_to_string(&mut buf);
+            let mut buf = Vec::new();
+            if f.read_to_end(&mut buf).expect("fail reading") == 0 {
+                panic!("not enaugh content")
+            };
 
             buf
         };
-        let parsed_module = module::<'_, VerboseError<&[u8]>>(wasm_binary.as_bytes());
-        std::println!("{:#?}", parsed_module);
+        let parsed_module = module::<'_, VerboseError<&[u8]>>(&wasm_binary[..]);
+
+        parsed_module.expect("failed to parse module");
     }
-
-    /*#[test]
-    fn should_decode_uleb128() {
-        use super::decode_uleb128;
-
-        let bytes = [0xE5 as u8, 0x8E, 0x86];
-        let expected = 624485;
-
-        let result: u32 = decode_uleb128(&mut bytes.iter().cloned()).expect("couldn't decode");
-
-        assert_eq!(result, expected);
-    }*/
 }
