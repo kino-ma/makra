@@ -3,6 +3,7 @@ use num_traits::{Unsigned, NumCast};
 use nom::{IResult};
 use nom::error::{ParseError, ContextError};
 use nom::bytes::streaming;
+use nom::number::streaming::u8 as onebyte;
 use nom::sequence::{tuple};
 use nom::combinator::{map};
 use nom::multi;
@@ -33,9 +34,9 @@ fn module<'a, E: ParseError<&'a [u8]> + ContextError<&'a [u8]>>(
 fn section<'a, E: ParseError<&'a [u8]> + ContextError<&'a [u8]>>(
   i: &'a [u8],
 ) -> IResult<&'a [u8], Section, E> {
-    let code = map(streaming::take(1usize), |s: &[u8]| s[0]);
+    let code = onebyte;
     let size = leb128_u32;
-    let content = multi::many1(streaming::take(1usize));
+    let content = multi::many1(onebyte);
 
     map(
         tuple((code, size, content)),
