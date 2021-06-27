@@ -39,7 +39,13 @@ fn section<'a, E: ParseError<&'a [u8]> + ContextError<&'a [u8]>>(
 ) -> IResult<&'a [u8], Section, E> {
     let code = onebyte;
     let size = leb128_u32;
-    let content = multi::many1(onebyte);
+    let content = |b| {
+        #[cfg(test)]
+        extern crate std;
+        #[cfg(test)]
+        std::eprintln!("bytes: {:?}", b);
+        multi::many1(onebyte)(b)
+    };
 
     context(
         "section",
@@ -93,6 +99,7 @@ impl Parser {
 extern crate std;
 mod test {
     extern crate std;
+    use std::{println, eprintln};
 
     use nom::error::{VerboseError, convert_error};
 
@@ -111,6 +118,8 @@ mod test {
             if f.read_to_end(&mut buf).expect("fail reading") == 0 {
                 panic!("not enaugh content")
             };
+
+            eprintln!("binary: {:?}", buf);
 
             buf
         };
