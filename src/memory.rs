@@ -13,6 +13,8 @@ where
     }
 }
 
+use core::alloc::{Layout, GlobalAlloc};
+
 #[derive(Clone, Copy, Default)]
 struct FreeMemoryInfo {
     addr: usize,
@@ -22,7 +24,7 @@ struct FreeMemoryInfo {
 const MAX_FREES: usize = 4090;
 
 static mut FREES: usize = MAX_FREES;
-static mut FREE: [FreeMemoryInfo; MAX_FREES] = [FreeMemoryInfo; MAX_FREES];
+static mut FREE: [FreeMemoryInfo; MAX_FREES] = [FreeMemoryInfo::default(); MAX_FREES];
 
 extern {
     static __kernel_heap_start__: usize;
@@ -126,12 +128,12 @@ unsafe impl GlobalAlloc for KernelAllocator {
         }
 
         // FIXME: deallocation failed. abort?
-        uart::write("dealloc failed\n");
+        println!("dealloc failed\n");
     }
 }
 
 #[alloc_error_handler]
 fn foo(_: Layout) -> ! {
-    uart::write("alloc_error");
+    println!("alloc_error");
     loop {}
 }

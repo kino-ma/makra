@@ -5,6 +5,7 @@
 
 #![feature(format_args_nl)]
 #![feature(panic_info_message)]
+#![feature(alloc_error_handler)]
 
 #[cfg(not(test))]
 #[macro_use]
@@ -21,6 +22,9 @@ mod panic_wait;
 mod runtime_init;
 #[cfg(not(test))]
 mod console;
+
+#[global_allocator]
+static GLOBAL_ALLOC: memory::KernelAllocator = memory::KernelAllocator;
 
 extern crate compiler;
 
