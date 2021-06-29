@@ -24,6 +24,7 @@ impl Module {
 mod test {
     extern crate std;
     use std::prelude::v1::*;
+    use std::println;
 
     use super::*;
 
@@ -31,6 +32,8 @@ mod test {
     fn parse_module() {
         let wasm_binary = get_wasm_binary();
         let module = Module::parse(&wasm_binary[..]);
+
+        println!("module: {:#?}", module);
 
         module.expect("failed to parse module");
     }
