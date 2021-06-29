@@ -13,7 +13,7 @@ where
     }
 }
 
-use core::alloc::{Layout, GlobalAlloc};
+use core::alloc::{GlobalAlloc, Layout};
 
 #[derive(Clone, Copy)]
 struct FreeMemoryInfo {
@@ -26,7 +26,7 @@ const MAX_FREES: usize = 4090;
 static mut FREES: usize = MAX_FREES;
 static mut FREE: [FreeMemoryInfo; MAX_FREES] = [FreeMemoryInfo { addr: 0, size: 0 }; MAX_FREES];
 
-extern {
+extern "C" {
     static __kernel_heap_start__: usize;
     static __kernel_heap_end__: usize;
 }
@@ -37,21 +37,21 @@ fn kernel_heap_start() -> usize {
 }
 
 #[inline]
-fn kernel_heap_end() -> usize{
+fn kernel_heap_end() -> usize {
     unsafe { &__kernel_heap_end__ as *const _ as usize }
 }
 pub unsafe fn init() {
     FREES = 1;
     FREE[0] = FreeMemoryInfo {
         addr: kernel_heap_start(),
-        size: (kernel_heap_end() - kernel_heap_start()) as usize
+        size: (kernel_heap_end() - kernel_heap_start()) as usize,
     };
 }
 
 fn aligned_size(layout: &Layout) -> usize {
     let s = layout.size();
     let a = layout.align();
-    return a * ((s / a) + if s % a > 0 {1} else {0});
+    return a * ((s / a) + if s % a > 0 { 1 } else { 0 });
 }
 
 pub struct KernelAllocator;
@@ -69,10 +69,10 @@ unsafe impl GlobalAlloc for KernelAllocator {
                 if FREE[i].size == 0 {
                     FREES -= 1;
                     for j in i..FREES {
-                        FREE[j] = FREE[j+1];
+                        FREE[j] = FREE[j + 1];
                     }
                 }
-                return addr
+                return addr;
             }
         }
 
@@ -92,14 +92,14 @@ unsafe impl GlobalAlloc for KernelAllocator {
         }
 
         if i > 0 {
-            if FREE[i-1].addr + FREE[i-1].size as usize == addr {
-                FREE[i-1].size += size;
+            if FREE[i - 1].addr + FREE[i - 1].size as usize == addr {
+                FREE[i - 1].size += size;
                 if i < FREES {
                     if addr + size as usize == FREE[i].addr {
-                        FREE[i-1].size += FREE[i].size;
+                        FREE[i - 1].size += FREE[i].size;
                         FREES -= 1;
                         for j in i..FREES {
-                            FREE[j] = FREE[j+1];
+                            FREE[j] = FREE[j + 1];
                         }
                     }
                 }
@@ -116,8 +116,8 @@ unsafe impl GlobalAlloc for KernelAllocator {
         }
 
         if FREES < MAX_FREES {
-            for j in (i+1..=FREES).rev() {
-                FREE[j] = FREE[j-1];
+            for j in (i + 1..=FREES).rev() {
+                FREE[j] = FREE[j - 1];
             }
 
             FREES -= 1;

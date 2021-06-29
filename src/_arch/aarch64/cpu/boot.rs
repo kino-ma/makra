@@ -1,5 +1,5 @@
-use crate::runtime_init;
 use crate::kernel_init;
+use crate::runtime_init;
 
 global_asm!(include_str!("boot.s"));
 
