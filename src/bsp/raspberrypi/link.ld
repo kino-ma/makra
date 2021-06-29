@@ -39,4 +39,15 @@ SECTIONS
         . += 8; /* Fill for the bss == 0 case, so that __bss_start <= __bss_end_inclusive holds */
         __bss_end_inclusive = . - 8;
     } :NONE
+
+    /* allocate 10KBytes for heap
+    ** ailgned 4096 bytes
+    */
+    .kernelheap : {
+        __kernel_heap_start__ = .;
+        . += 0x100000;
+    }
+
+    . = ALIGN(4096);
+    __kernel_heap_end__ = .;
 }
