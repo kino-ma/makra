@@ -7,6 +7,8 @@
 #![feature(panic_info_message)]
 #![feature(alloc_error_handler)]
 
+extern crate alloc;
+
 #[cfg(not(test))]
 #[macro_use]
 mod print;
@@ -29,8 +31,11 @@ static GLOBAL_ALLOC: memory::KernelAllocator = memory::KernelAllocator;
 extern crate compiler;
 
 unsafe fn kernel_init() -> ! {
+    use alloc::format;
+
     println!("Hello QEMU!");
-    panic!("Stopping")
+    println!("value: {}", 1);
+    panic!("Stopping...")
 }
 
 #[cfg(test)]

@@ -15,7 +15,7 @@ where
 
 use core::alloc::{Layout, GlobalAlloc};
 
-#[derive(Clone, Copy, Default)]
+#[derive(Clone, Copy)]
 struct FreeMemoryInfo {
     addr: usize,
     size: usize,
@@ -24,7 +24,7 @@ struct FreeMemoryInfo {
 const MAX_FREES: usize = 4090;
 
 static mut FREES: usize = MAX_FREES;
-static mut FREE: [FreeMemoryInfo; MAX_FREES] = [FreeMemoryInfo::default(); MAX_FREES];
+static mut FREE: [FreeMemoryInfo; MAX_FREES] = [FreeMemoryInfo { addr: 0, size: 0 }; MAX_FREES];
 
 extern {
     static __kernel_heap_start__: usize;
@@ -33,12 +33,12 @@ extern {
 
 #[inline]
 fn kernel_heap_start() -> usize {
-    &__kernel_heap_start__ as *const _ as usize
+    unsafe { &__kernel_heap_start__ as *const _ as usize }
 }
 
 #[inline]
 fn kernel_heap_end() -> usize{
-    &__kernel_heap_end__ as *const _ as usize
+    unsafe { &__kernel_heap_end__ as *const _ as usize }
 }
 pub unsafe fn init() {
     FREES = 1;
