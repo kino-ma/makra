@@ -4,9 +4,13 @@
 #![cfg_attr(not(test), no_std)]
 #![feature(format_args_nl)]
 #![feature(panic_info_message)]
+#![feature(alloc_prelude)]
 #![feature(alloc_error_handler)]
 
+#[macro_use]
 extern crate alloc;
+
+use alloc::prelude::*;
 
 #[cfg(not(test))]
 #[macro_use]
