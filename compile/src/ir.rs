@@ -25,8 +25,11 @@ impl Module {
 
     pub fn generate(&self) -> Result<Vec<u8>> {
         let bodies = self.inner.code_section().ok_or(Failure)?.bodies();
-        bodies.iter().map(generate_func);
-        Err(Failure)
+        let v = bodies.iter().map(generate_func).try_fold(Vec::new(), |mut v, bin| {
+            v.append(&mut bin?);
+            Ok(v)
+        })?;
+        Ok(v)
     }
 }
 
