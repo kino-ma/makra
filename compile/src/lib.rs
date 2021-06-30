@@ -4,16 +4,15 @@
 #[macro_use]
 extern crate alloc;
 
-pub mod parse;
-pub mod ir;
 pub mod codegen;
 pub mod err;
-
+pub mod ir;
+pub mod parse;
 
 use alloc::prelude::v1::*;
 
+pub use err::{Error, Result};
 use ir::Module;
-pub use err::{Result, Error};
 
 pub struct Compiler {
     module: Module,
@@ -21,9 +20,7 @@ pub struct Compiler {
 
 impl Compiler {
     pub fn new(module: Module) -> Self {
-        Self {
-            module,
-        }
+        Self { module }
     }
 
     pub fn parse(binary: &[u8]) -> Result<Self> {

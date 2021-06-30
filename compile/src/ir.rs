@@ -1,8 +1,8 @@
 use alloc::prelude::v1::*;
 
-use parity_wasm::elements::{Module as WasmModule, FuncBody};
+use parity_wasm::elements::{FuncBody, Module as WasmModule};
 
-use crate::err::{Result, Error::Failure};
+use crate::err::{Error::Failure, Result};
 
 /// Intermidate representation of a WebAssembly Module
 #[cfg_attr(test, derive(Debug))]
@@ -12,23 +12,23 @@ pub struct Module {
 
 impl Module {
     pub fn new(module: WasmModule) -> Self {
-        Self {
-            inner: module,
-        }
+        Self { inner: module }
     }
 
     pub fn parse(buf: &[u8]) -> Result<Self> {
-        let module = parity_wasm::deserialize_buffer(buf)
-            .or(Err(Failure))?;
+        let module = parity_wasm::deserialize_buffer(buf).or(Err(Failure))?;
         Ok(Self::new(module))
     }
 
     pub fn generate(&self) -> Result<Vec<u8>> {
         let bodies = self.inner.code_section().ok_or(Failure)?.bodies();
-        let v = bodies.iter().map(generate_func).try_fold(Vec::new(), |mut v, bin| {
-            v.append(&mut bin?);
-            Ok(v)
-        })?;
+        let v = bodies
+            .iter()
+            .map(generate_func)
+            .try_fold(Vec::new(), |mut v, bin| {
+                v.append(&mut bin?);
+                Ok(v)
+            })?;
         Ok(v)
     }
 }
