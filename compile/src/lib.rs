@@ -29,7 +29,7 @@ impl Compiler {
         Ok(Self::new(module))
     }
 
-    pub fn generate(&self) -> Vec<u8> {
-        Vec::new()
+    pub fn generate(&self) -> Result<Vec<u8>, ()> {
+        self.module.generate()
     }
 }

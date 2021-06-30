@@ -1,3 +1,5 @@
+use alloc::prelude::v1::*;
+
 use parity_wasm::elements::Module as WasmModule;
 
 /// Intermidate representation of a WebAssembly Module
@@ -17,6 +19,10 @@ impl Module {
         let module = parity_wasm::deserialize_buffer(buf)
             .or(Err(()))?;
         Ok(Self::new(module))
+    }
+
+    pub fn generate(&self) -> Result<Vec<u8>, ()> {
+        Ok(Vec::new())
     }
 }
 
