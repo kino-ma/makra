@@ -32,7 +32,7 @@ mod runtime_init;
 #[global_allocator]
 static GLOBAL_ALLOC: memory::KernelAllocator = memory::KernelAllocator;
 
-extern crate compiler;
+extern crate compile;
 
 unsafe fn kernel_init() -> ! {
     println!("Hello QEMU!");
