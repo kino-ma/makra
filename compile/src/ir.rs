@@ -2,6 +2,7 @@ use alloc::prelude::v1::*;
 
 use parity_wasm::elements::{FuncBody, Module as WasmModule};
 
+use crate::codegen::generate_func;
 use crate::err::{Error::Failure, Result};
 
 /// Intermidate representation of a WebAssembly Module
@@ -31,10 +32,6 @@ impl Module {
             })?;
         Ok(v)
     }
-}
-
-fn generate_func(body: &FuncBody) -> Result<Vec<u8>> {
-    Err(Failure)
 }
 
 #[cfg(test)]
