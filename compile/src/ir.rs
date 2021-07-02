@@ -47,8 +47,6 @@ mod test {
         let wasm_binary = get_wasm_binary();
         let module = Module::parse(&wasm_binary[..]);
 
-        println!("module: {:#?}", module);
-
         module.expect("failed to parse module");
     }
 

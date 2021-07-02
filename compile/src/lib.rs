@@ -1,5 +1,6 @@
 #![no_std]
 #![feature(alloc_prelude)]
+#![allow(arithmetic_overflow)]
 
 #[macro_use]
 extern crate alloc;
