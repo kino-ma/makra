@@ -54,6 +54,7 @@ fn wasm2bin(inst: &Instruction) -> Result<Vec<Code>> {
 }
 
 fn mov(dist: u8, val: i32) -> Result<Code> {
+    validate_register(dist)?;
     // 1110_101[S]_0000_[Reg; 4][#imm; 12]
     if val >= 1i32 << 11 {
         Err(TooLargeI32(val))
@@ -65,15 +66,20 @@ fn mov(dist: u8, val: i32) -> Result<Code> {
 }
 
 fn add(dist: u8, src_n: u8, src_m: u8) -> Result<Code> {
+    validate_register(dist)?;
+    validate_register(src_n)?;
+    validate_register(src_m)?;
     // 1110_00_0_0100_0_[src_n; 4]_[dist; 4]_[shift; 5]_00_0_[src_m; 4]
     Ok((0xe080_0000_u32 | shl32(src_n, 16) | shl32(dist, 12) | src_m as u32).to_le_bytes())
 }
 
 fn push(src: u8) -> Result<Code> {
+    validate_register(src)?;
     Ok(to_le([0xe5, 0x2d, src << 4, 0x04]))
 }
 
 fn pop(dist: u8) -> Result<Code> {
+    validate_register(dist)?;
     Ok(to_le([0xe4, 0x9d, dist << 4, 0x04]))
 }
 
@@ -87,6 +93,17 @@ fn to_le(mut code: Code) -> Code {
     code[1] = t;
 
     code
+}
+
+fn validate_register(reg: u8) -> Result<()> {
+    if reg & 0xf0 != 0 {
+        Err(InvalidRegister(reg))
+    } else if reg > 3 {
+        // for now, we only use r0 ~ r3 only
+        Err(InvalidRegister(reg))
+    } else {
+        Ok(())
+    }
 }
 
 fn shl32(x: u8, rhs: u32) -> u32 {
