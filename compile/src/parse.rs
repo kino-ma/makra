@@ -1,6 +1,6 @@
 extern crate parity_wasm;
 
-use crate::err::{Error::*, Result};
+use crate::err::Result;
 use crate::ir::Module;
 
 pub fn parse(buf: &[u8]) -> Result<Module> {

@@ -1,6 +1,6 @@
 use alloc::prelude::v1::*;
 
-use parity_wasm::elements::{FuncBody, Module as WasmModule};
+use parity_wasm::elements::Module as WasmModule;
 
 use crate::codegen::generate_func;
 use crate::err::{Error::Failure, Result};
