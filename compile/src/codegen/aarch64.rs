@@ -64,3 +64,20 @@ fn to_le(mut code: Code) -> Code {
 
     code
 }
+
+#[cfg(test)]
+mod test {
+    use parity_wasm::elements::opcodes::I32CONST;
+
+    #[test]
+    fn i32_const() {
+        let inst = I32CONST(10);
+        let expect = {
+            let mov10 = 0xe3a0000a_i32.to_le_bytes();
+            let push_r0 = 0xe52d0004_i32.to_le_bytes();
+            vec![mov10, push_r0].concat()
+        };
+        let result = wasm2bin(inst);
+        assert_eq!(result, expect);
+    }
+}
