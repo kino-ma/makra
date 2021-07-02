@@ -55,13 +55,12 @@ fn wasm2bin(inst: &Instruction) -> Result<Vec<Code>> {
 
 fn mov(dist: u8, val: i32) -> Result<Code> {
     // 1110_101[S]_0000_[Reg; 4][#imm; 12]
-    if val > 1i32.wrapping_shl(11) {
+    if val >= 1i32 << 11 {
         Err(TooLargeI32(val))
+    } else if dist & 0xf0 != 0 {
+        Err(InvalidRegister(dist))
     } else {
-        let lower8 = (val & 0xff) as u8;
-        let upper4 = ((val >> 8) & 0b1111) as u8;
-        let be = [0xe3, 0xa0, (dist << 4) & upper4, lower8];
-        Ok(to_le(be))
+        Ok((0xe3a0_0000u32 | (dist as u32).wrapping_shl(12) | val as u32).to_le_bytes())
     }
 }
 
