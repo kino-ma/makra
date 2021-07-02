@@ -77,4 +77,13 @@ mod test {
         let result = wasm2bin(&inst).expect("failed to convert");
         assert_eq!(result, expect);
     }
+
+    #[test]
+    fn i32_const_failes_larger_int() {
+        let num = 123456;
+        let inst = I32Const(num);
+        let expect = TooLargeI32(num);
+        let result = wasm2bin(&inst).expect_err("succeed to parse");
+        assert_eq!(result, expect);
+    }
 }
