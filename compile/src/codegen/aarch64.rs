@@ -37,6 +37,8 @@ fn wasm2bin(inst: &Instruction) -> Result<Vec<Code>> {
             Ok(vec![pop_1, pop_2, add_, push_r0])
         }
 
+        End => Ok(vec![]),
+
         _ => Err(NotImplemented),
     }
 }
@@ -99,8 +101,8 @@ mod test {
         let expect = {
             let mov10 = 0xe3a0000au32.to_le_bytes();
             let push10 = 0xe52d0004u32.to_le_bytes();
-            let mov20 = 0xe3a0000au32.to_le_bytes();
-            let push20 = 0xe3a00014u32.to_le_bytes();
+            let mov20 = 0xe3a00014u32.to_le_bytes();
+            let push20 = 0xe52d0004u32.to_le_bytes();
             let pop10 = 0xe49d1004u32.to_le_bytes();
             let pop20 = 0xe49d2004u32.to_le_bytes();
             let add10_20 = 0xe0810002u32.to_le_bytes();
@@ -156,6 +158,13 @@ mod test {
             vec![pop_n, pop_m, add_, push_res]
         };
         let result = wasm2bin(&inst).expect("failed to convert");
+        assert_eq!(result, expect);
+    }
+
+    #[test]
+    fn te_le_correct() {
+        let expect = [4, 3, 2, 1];
+        let result = to_le([1, 2, 3, 4]);
         assert_eq!(result, expect);
     }
 
