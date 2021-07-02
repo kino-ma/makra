@@ -11,10 +11,20 @@ type Code = [u8; 4];
 
 pub fn generate_func(body: &FuncBody) -> Result<Vec<u8>> {
     let mut v: Vec<u8> = Vec::new();
+    // prologue
+    // we use r0 to return result
+    v.extend(push(2)?);
+    v.extend(push(1)?);
+
     for i in body.code().elements().iter() {
         let code = wasm2bin(i)?;
         v.extend(code.concat());
     }
+
+    // epilogue
+    v.extend(pop(0)?);
+    v.extend(pop(1)?);
+    v.extend(pop(2)?);
 
     Ok(v)
 }
@@ -99,17 +109,27 @@ mod test {
         let body = &bodies[0];
 
         let expect = {
+            let push_r2 = 0xe52d2004u32.to_le_bytes();
+            let push_r1 = 0xe52d1004u32.to_le_bytes();
+
             let mov10 = 0xe3a0000au32.to_le_bytes();
             let push10 = 0xe52d0004u32.to_le_bytes();
             let mov20 = 0xe3a00014u32.to_le_bytes();
             let push20 = 0xe52d0004u32.to_le_bytes();
+
             let pop10 = 0xe49d1004u32.to_le_bytes();
             let pop20 = 0xe49d2004u32.to_le_bytes();
+
             let add10_20 = 0xe0810002u32.to_le_bytes();
             let push_res = 0xe52d0004u32.to_le_bytes();
 
+            let pop_res = 0xe49d0004u32.to_le_bytes();
+            let pop_r1 = 0xe49d1004u32.to_le_bytes();
+            let pop_r2 = 0xe49d2004u32.to_le_bytes();
+
             vec![
-                mov10, push10, mov20, push20, pop10, pop20, add10_20, push_res,
+                push_r2, push_r1, mov10, push10, mov20, push20, pop10, pop20, add10_20, push_res,
+                pop_res, pop_r1, pop_r2,
             ]
             .concat()
         };
