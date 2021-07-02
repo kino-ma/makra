@@ -115,8 +115,8 @@ mod test {
         let expect = {
             let pop_n = 0xe49d1004u32.to_le_bytes();
             let pop_m = 0xe49d2004u32.to_le_bytes();
-            let add_ = 0xe0810002.to_le_bytes();
-            let push_res = 0xe52d0004.to_le_bytes();
+            let add_ = 0xe0810002u32.to_le_bytes();
+            let push_res = 0xe52d0004u32.to_le_bytes();
 
             vec![pop_n, pop_m, add_, push_res]
         };
