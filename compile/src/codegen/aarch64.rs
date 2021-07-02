@@ -24,14 +24,10 @@ fn wasm2bin(inst: &Instruction) -> Result<Vec<Code>> {
     match inst {
         I32Const(x) => {
             let x = *x;
-            if x > 1 << 32 {
-                Err(TooLargeI32(x))
-            } else {
-                // 1110_101[S]_0000_[Reg; 4][#imm; 12]
-                let mov_r0 = mov(0, x)?;
-                let push_r0 = push(0)?;
-                Ok(vec![mov_r0, push_r0])
-            }
+            // 1110_101[S]_0000_[Reg; 4][#imm; 12]
+            let mov_r0 = mov(0, x)?;
+            let push_r0 = push(0)?;
+            Ok(vec![mov_r0, push_r0])
         }
 
         _ => Err(NotImplemented),
@@ -39,7 +35,7 @@ fn wasm2bin(inst: &Instruction) -> Result<Vec<Code>> {
 }
 
 fn mov(dist: u8, val: i32) -> Result<Code> {
-    if val > 1 << 32 {
+    if val > 1i32.wrapping_shl(11) {
         Err(TooLargeI32(val))
     } else {
         let lower8 = (val & 0xff) as u8;
@@ -74,9 +70,9 @@ mod test {
     fn i32_const() {
         let inst = I32Const(10);
         let expect = {
-            let mov10 = 0xe3a0000a_i32.to_le_bytes();
-            let push_r0 = 0xe52d0004_i32.to_le_bytes();
-            vec![mov10, push_r0].concat()
+            let mov10 = 0xe3a0000a_u32.to_le_bytes();
+            let push_r0 = 0xe52d0004_u32.to_le_bytes();
+            vec![mov10, push_r0]
         };
         let result = wasm2bin(&inst).expect("failed to convert");
         assert_eq!(result, expect);
