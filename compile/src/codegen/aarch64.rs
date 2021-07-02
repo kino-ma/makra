@@ -88,6 +88,8 @@ mod test {
 
     #[test]
     fn i32_const() {
+        // i32.const 10
+        // push(r0)
         let inst = I32Const(10);
         let expect = {
             let mov10 = 0xe3a0000a_u32.to_le_bytes();
@@ -100,6 +102,7 @@ mod test {
 
     #[test]
     fn i32_const_failes_larger_int() {
+        // arm can't mov x if x > 2^12
         let num = 123456;
         let inst = I32Const(num);
         let expect = TooLargeI32(num);
@@ -109,6 +112,9 @@ mod test {
 
     #[test]
     fn i32_add() {
+        // i32.add 10 20
+        // r0 = r1 + r2
+
         let inst = I32Add;
         let expect = {
             let pop_n = 0xe49d1004u32.to_le_bytes();
