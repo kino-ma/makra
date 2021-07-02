@@ -60,17 +60,13 @@ fn mov(dist: u8, val: i32) -> Result<Code> {
     } else if dist & 0xf0 != 0 {
         Err(InvalidRegister(dist))
     } else {
-        Ok((0xe3a0_0000u32 | (dist as u32).wrapping_shl(12) | val as u32).to_le_bytes())
+        Ok((0xe3a0_0000u32 | shl32(dist, 12) | val as u32).to_le_bytes())
     }
 }
 
 fn add(dist: u8, src_n: u8, src_m: u8) -> Result<Code> {
     // 1110_00_0_0100_0_[src_n; 4]_[dist; 4]_[shift; 5]_00_0_[src_m; 4]
-    Ok((0xe080_0000_u32
-        | (src_n as u32).wrapping_shl(16)
-        | (dist as u32).wrapping_shl(12)
-        | src_m as u32)
-        .to_le_bytes())
+    Ok((0xe080_0000_u32 | shl32(src_n, 16) | shl32(dist, 12) | src_m as u32).to_le_bytes())
 }
 
 fn push(src: u8) -> Result<Code> {
@@ -91,6 +87,10 @@ fn to_le(mut code: Code) -> Code {
     code[1] = t;
 
     code
+}
+
+fn shl32(x: u8, rhs: u32) -> u32 {
+    (x as u32).wrapping_shl(rhs)
 }
 
 #[cfg(test)]
