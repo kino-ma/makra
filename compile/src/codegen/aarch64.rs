@@ -10,14 +10,20 @@ use crate::err::{Error::*, Result};
 type Code = [u8; 4];
 
 pub fn generate_func(body: &FuncBody) -> Result<Vec<u8>> {
-    //TODO test.wasmのアレを変換できるようにする
-    body.code().elements().iter().map(wasm2bin).collect()
+    let mut v: Vec<u8> = Vec::new();
+    for i in body.code().elements().iter() {
+        let code = wasm2bin(i)?;
+        v.extend(code.concat());
+    }
+
+    Ok(v)
 }
 
 fn wasm2bin(inst: &Instruction) -> Result<Vec<Code>> {
     // for now, we use r0, r1, r2 to general operations
     match inst {
         I32Const(x) => {
+            let x = *x;
             if x > 1 << 32 {
                 Err(TooLargeI32(x))
             } else {
