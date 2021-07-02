@@ -85,7 +85,6 @@ fn to_le(mut code: Code) -> Code {
 #[cfg(test)]
 mod test {
     use super::*;
-    use parity_wasm::elements::opcodes::I32CONST;
 
     #[test]
     fn i32_const() {
@@ -105,6 +104,23 @@ mod test {
         let inst = I32Const(num);
         let expect = TooLargeI32(num);
         let result = wasm2bin(&inst).expect_err("succeed to parse");
+        assert_eq!(result, expect);
+    }
+
+    #[test]
+    fn i32_add() {
+        let n = 10;
+        let m = 20;
+        let inst = I32Add;
+        let expect = {
+            let pop_n = 0xe49d1004u32.to_le_bytes();
+            let pop_m = 0xe49d2004u32.to_le_bytes();
+            let add_ = 0xe0810002.to_le_bytes();
+            let push_res = 0xe52d0004.to_le_bytes();
+
+            vec![pop_n, pop_m, add_, push_res]
+        };
+        let result = wasm2bin(&inst).expect("failed to convert");
         assert_eq!(result, expect);
     }
 }
