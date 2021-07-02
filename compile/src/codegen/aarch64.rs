@@ -30,6 +30,14 @@ fn wasm2bin(inst: &Instruction) -> Result<Vec<Code>> {
             Ok(vec![mov_r0, push_r0])
         }
 
+        I32Add => {
+            let pop_1 = pop(1)?;
+            let pop_2 = pop(2)?;
+            let add_ = add(1, 2)?;
+            let push_r0 = push(0)?;
+            Ok(vec![pop_1, pop_2, add_, push_r0])
+        }
+
         _ => Err(NotImplemented),
     }
 }
