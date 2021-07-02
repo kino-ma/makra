@@ -56,8 +56,8 @@ fn mov(dist: u8, val: i32) -> Result<Code> {
 fn add(dist: u8, src_n: u8, src_m: u8) -> Result<Code> {
     // 1110_00_0_0100_0_[src_n; 4]_[dist; 4]_[shift; 5]_00_0_[src_m; 4]
     Ok((0xe080_0000_u32
-        | src_n.wrapping_shl(15) as u32
-        | dist.wrapping_shl(11) as u32
+        | (src_n as u32).wrapping_shl(16)
+        | (dist as u32).wrapping_shl(12)
         | src_m as u32)
         .to_le_bytes())
 }
@@ -109,8 +109,6 @@ mod test {
 
     #[test]
     fn i32_add() {
-        let n = 10;
-        let m = 20;
         let inst = I32Add;
         let expect = {
             let pop_n = 0xe49d1004u32.to_le_bytes();
