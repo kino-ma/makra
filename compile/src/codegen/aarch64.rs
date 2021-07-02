@@ -87,6 +87,37 @@ mod test {
     use super::*;
 
     #[test]
+    fn func2code() {
+        // wasm function to machine code
+        let body = {
+            let bin = get_wasm_binary();
+            let module = parity_wasm::deserialize_buffer(bin).expect("failed to deserialize");
+            let bodies = module.code_section.expect("no code section");
+            bodies[0]
+        };
+
+        let expect = {
+            let mov10 = 0xe3a0000au32.to_le_bytes();
+            let push10 = 0xe52d0004u32.to_le_bytes();
+            let mov20 = 0xe3a0000au32.to_le_bytes();
+            let push20 = 0xe3a00014u32.to_le_bytes();
+            let pop10 = 0xe49d1004u32.to_le_bytes();
+            let pop20 = 0xe49d2004u32.to_le_bytes();
+            let add10_20 = 0xe0810002u32.to_le_bytes();
+            let push_res = 0xe52d0004.to_le_bytes();
+
+            vec![
+                mov10, push10, mov20, push20, pop10, pop20, add10_20, push_res,
+            ]
+            .concat()
+        };
+
+        let result = generate_func(body);
+
+        assert_eq!(result, Ok(expect));
+    }
+
+    #[test]
     fn i32_const() {
         // i32.const 10
         // push(r0)
@@ -126,5 +157,18 @@ mod test {
         };
         let result = wasm2bin(&inst).expect("failed to convert");
         assert_eq!(result, expect);
+    }
+
+    fn get_wasm_binary() -> Vec<u8> {
+        use std::fs;
+        use std::io::Read;
+
+        let mut f = fs::File::open("wasm-binaries/test.wasm").expect("failed to open wasm: ");
+        let mut buf = Vec::new();
+        if f.read_to_end(&mut buf).expect("fail reading") == 0 {
+            panic!("not enaugh content")
+        };
+
+        buf
     }
 }
