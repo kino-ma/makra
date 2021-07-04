@@ -1,3 +1,4 @@
+mod native;
 mod reg;
 
 use alloc::prelude::v1::*;
@@ -9,7 +10,7 @@ use parity_wasm::elements::{
 
 use crate::err::{Error::*, Result};
 
-type Code = [u8; 4];
+pub type Code = [u8; 4];
 
 pub fn generate_func(body: &FuncBody) -> Result<Vec<u8>> {
     let mut v: Vec<u8> = Vec::new();
@@ -37,16 +38,16 @@ fn wasm2bin(inst: &Instruction) -> Result<Vec<Code>> {
     match inst {
         I32Const(x) => {
             let x = *x;
-            let mov_r0 = mov(0, x)?;
-            let push_r0 = push(0)?;
+            let mov_r0 = native::mov(0, x)?;
+            let push_r0 = native::push(0)?;
             Ok(vec![mov_r0, push_r0])
         }
 
         I32Add => {
-            let pop_1 = pop(1)?;
-            let pop_2 = pop(2)?;
-            let add_ = add(0, 1, 2)?;
-            let push_r0 = push(0)?;
+            let pop_1 = native::pop(1)?;
+            let pop_2 = native::pop(2)?;
+            let add_ = native::add(0, 1, 2)?;
+            let push_r0 = native::push(0)?;
             Ok(vec![pop_1, pop_2, add_, push_r0])
         }
 
@@ -54,35 +55,6 @@ fn wasm2bin(inst: &Instruction) -> Result<Vec<Code>> {
 
         _ => Err(NotImplemented),
     }
-}
-
-fn mov(dist: u8, val: i32) -> Result<Code> {
-    validate_register(dist)?;
-    // 1101_0010_100_[#imm; 16]_[dist; 5]
-    if val >= 1i32 << 15 {
-        Err(TooLargeI32(val))
-    } else {
-        Ok((0xd2800000 | (val as u32) << 5 | dist as u32).to_le_bytes())
-    }
-}
-
-fn add(dist: u8, src_n: u8, src_m: u8) -> Result<Code> {
-    validate_register(dist)?;
-    validate_register(src_n)?;
-    validate_register(src_m)?;
-    // 1000_1011_[shift; 2]_0_[src_m; 5]_[imm6]_[src_n; 5]_[dist; 5]
-    Ok((0x8b000000u32 | shl32(src_m, 16) | shl32(src_n, 5) | dist as u32).to_le_bytes())
-}
-
-fn push(src: u8) -> Result<Code> {
-    validate_register(src)?;
-    Ok((0xf8008c00 | shl32(reg::SP, 5) | src as u32).to_le_bytes())
-}
-
-fn pop(dist: u8) -> Result<Code> {
-    validate_register(dist)?;
-    Ok((0xf84087e0 | shl32(reg::SP, 5) | dist as u32).to_le_bytes())
-    //Ok(to_le([0xe4, 0x9d, dist << 4, 0x04]))
 }
 
 fn to_le(mut code: Code) -> Code {
@@ -108,7 +80,7 @@ fn prologue(registers: &[u8]) -> Result<Vec<Code>> {
     // sort in reversed order
     registers_owned.sort_by(|a, b| b.cmp(a));
 
-    registers_owned.iter().copied().map(push).collect()
+    registers_owned.iter().copied().map(native::push).collect()
 }
 
 /// Pop given registers
@@ -122,19 +94,7 @@ fn epilogue(registers: &[u8]) -> Result<Vec<Code>> {
     // sort in reversed order
     registers_owned.sort();
 
-    registers_owned.iter().copied().map(pop).collect()
-}
-
-fn validate_register(reg: u8) -> Result<()> {
-    if reg > 31 {
-        Err(InvalidRegister(reg))
-    } else {
-        Ok(())
-    }
-}
-
-fn shl32(x: u8, rhs: u32) -> u32 {
-    (x as u32).wrapping_shl(rhs)
+    registers_owned.iter().copied().map(native::pop).collect()
 }
 
 #[cfg(test)]
@@ -233,7 +193,7 @@ mod test {
     fn add_correct() {
         // add x0, x1, x2
         let expect = 0x8b020020u32.to_le_bytes();
-        let result = add(0, 1, 2);
+        let result = native::add(0, 1, 2);
         assert_eq!(result, Ok(expect));
     }
 
@@ -241,7 +201,7 @@ mod test {
     fn push_correct() {
         // push x0
         let expect = 0xf8008fe0u32.to_le_bytes();
-        let result = push(0);
+        let result = native::push(0);
         assert_eq!(result, Ok(expect));
     }
 
@@ -249,7 +209,7 @@ mod test {
     fn pop_correct() {
         // pop x0
         let expect = 0xf84087e0u32.to_le_bytes();
-        let result = pop(0);
+        let result = native::pop(0);
         assert_eq!(result, Ok(expect));
     }
 
@@ -257,7 +217,7 @@ mod test {
     fn mov_correct() {
         // mov x0, #10
         let expect = 0xd2800140u32.to_le_bytes();
-        let result = mov(0, 10);
+        let result = native::mov(0, 10);
         assert_eq!(result, Ok(expect));
     }
 
