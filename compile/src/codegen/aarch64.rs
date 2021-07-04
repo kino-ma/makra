@@ -244,7 +244,7 @@ mod test {
 
     #[test]
     fn push_correct() {
-        // add x0, x1, x2
+        // push x0
         let expect = 0xf8008fe0u32.to_le_bytes();
         let result = push(0);
         assert_eq!(result, Ok(expect));
@@ -252,9 +252,17 @@ mod test {
 
     #[test]
     fn pop_correct() {
-        // add x0, x1, x2
+        // pop x0
         let expect = 0xf84087e0u32.to_le_bytes();
         let result = pop(0);
+        assert_eq!(result, Ok(expect));
+    }
+
+    #[test]
+    fn mov_correct() {
+        // mov x0, #10
+        let expect = 0xd2800140u32.to_le_bytes();
+        let result = mov(0, 10);
         assert_eq!(result, Ok(expect));
     }
 
