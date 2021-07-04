@@ -16,7 +16,7 @@ pub fn generate_func(body: &FuncBody) -> Result<Vec<u8>> {
     //TODO LOCALS
     // prologue
     // we use r0 to return result
-    let registers = [1, 2, 29];
+    let registers = [1, 2];
     v.extend(prologue(&registers)?.concat());
 
     for i in body.code().elements().iter() {
@@ -62,7 +62,7 @@ fn mov(dist: u8, val: i32) -> Result<Code> {
     if val >= 1i32 << 15 {
         Err(TooLargeI32(val))
     } else {
-        Ok((0xd2800140 | (val as u32) << 5 | dist as u32).to_le_bytes())
+        Ok((0xd2800000 | (val as u32) << 5 | dist as u32).to_le_bytes())
     }
 }
 
