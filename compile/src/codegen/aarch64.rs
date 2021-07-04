@@ -58,13 +58,11 @@ fn wasm2bin(inst: &Instruction) -> Result<Vec<Code>> {
 
 fn mov(dist: u8, val: i32) -> Result<Code> {
     validate_register(dist)?;
-    // 1110_101[S]_0000_[Reg; 4][#imm; 12]
-    if val >= 1i32 << 11 {
+    // 1101_0010_100_[#imm; 16]_[dist; 5]
+    if val >= 1i32 << 15 {
         Err(TooLargeI32(val))
-    } else if dist & 0xf0 != 0 {
-        Err(InvalidRegister(dist))
     } else {
-        Ok((0xe3a0_0000u32 | shl32(dist, 12) | val as u32).to_le_bytes())
+        Ok((0xd2800140 | (val as u32) << 5 | dist as u32).to_le_bytes())
     }
 }
 
@@ -128,10 +126,7 @@ fn epilogue(registers: &[u8]) -> Result<Vec<Code>> {
 }
 
 fn validate_register(reg: u8) -> Result<()> {
-    if reg & 0xf0 != 0 {
-        Err(InvalidRegister(reg))
-    } else if reg > 3 {
-        // for now, we only use r0 ~ r3 only
+    if reg > 31 {
         Err(InvalidRegister(reg))
     } else {
         Ok(())
