@@ -11,10 +11,11 @@ type Code = [u8; 4];
 
 pub fn generate_func(body: &FuncBody) -> Result<Vec<u8>> {
     let mut v: Vec<u8> = Vec::new();
+    //TODO LOCALS
     // prologue
     // we use r0 to return result
-    v.extend(push(2)?);
-    v.extend(push(1)?);
+    let registers = [1, 2, 29];
+    v.extend(prologue(&registers)?.concat());
 
     for i in body.code().elements().iter() {
         let code = wasm2bin(i)?;
@@ -22,9 +23,9 @@ pub fn generate_func(body: &FuncBody) -> Result<Vec<u8>> {
     }
 
     // epilogue
-    v.extend(pop(0)?);
-    v.extend(pop(1)?);
-    v.extend(pop(2)?);
+    let mut registers = registers.to_vec();
+    registers.push(0);
+    v.extend(epilogue(&registers)?.concat());
 
     Ok(v)
 }
@@ -93,6 +94,34 @@ fn to_le(mut code: Code) -> Code {
     code[1] = t;
 
     code
+}
+
+/// Push given registers in reversed order
+fn prologue(registers: &[u8]) -> Result<Vec<Code>> {
+    let mut registers_owned = registers.to_owned();
+    // x29, frame pointer;
+    registers_owned.push(29);
+
+    registers_owned.dedup();
+
+    // sort in reversed order
+    registers_owned.sort_by(|a, b| b.cmp(a));
+
+    registers_owned.iter().copied().map(push).collect()
+}
+
+/// Pop given registers
+fn epilogue(registers: &[u8]) -> Result<Vec<Code>> {
+    let mut registers_owned = registers.to_owned();
+    // x29, frame pointer;
+    registers_owned.push(29);
+
+    registers_owned.dedup();
+
+    // sort in reversed order
+    registers_owned.sort();
+
+    registers_owned.iter().copied().map(pop).collect()
 }
 
 fn validate_register(reg: u8) -> Result<()> {
