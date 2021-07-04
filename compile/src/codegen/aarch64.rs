@@ -154,27 +154,25 @@ mod test {
         let body = &bodies[0];
 
         let expect = {
-            let push_r2 = 0xe52d2004u32.to_le_bytes();
-            let push_r1 = 0xe52d1004u32.to_le_bytes();
-
-            let mov10 = 0xe3a0000au32.to_le_bytes();
-            let push10 = 0xe52d0004u32.to_le_bytes();
-            let mov20 = 0xe3a00014u32.to_le_bytes();
-            let push20 = 0xe52d0004u32.to_le_bytes();
-
-            let pop10 = 0xe49d1004u32.to_le_bytes();
-            let pop20 = 0xe49d2004u32.to_le_bytes();
-
-            let add10_20 = 0xe0810002u32.to_le_bytes();
-            let push_res = 0xe52d0004u32.to_le_bytes();
-
-            let pop_res = 0xe49d0004u32.to_le_bytes();
-            let pop_r1 = 0xe49d1004u32.to_le_bytes();
-            let pop_r2 = 0xe49d2004u32.to_le_bytes();
+            let push_fp = 0xf8008ffdu32.to_le_bytes();
+            let push_r2 = 0xf8008fe2u32.to_le_bytes();
+            let push_r1 = 0xf8008fe1u32.to_le_bytes();
+            let mov10 = 0xd2800140u32.to_le_bytes();
+            let push10 = 0xf8008fe0u32.to_le_bytes();
+            let mov20 = 0xd2800280u32.to_le_bytes();
+            let push20 = 0xf8008fe0u32.to_le_bytes();
+            let pop10 = 0xf84087e1u32.to_le_bytes();
+            let pop20 = 0xf84087e2u32.to_le_bytes();
+            let add10_20 = 0x8b020020u32.to_le_bytes();
+            let push_res = 0xf8008fe0u32.to_le_bytes();
+            let pop_res = 0xf84087e0u32.to_le_bytes();
+            let pop_r1 = 0xf84087e1u32.to_le_bytes();
+            let pop_r2 = 0xf84087e2u32.to_le_bytes();
+            let pop_fp = 0xf84087fdu32.to_le_bytes();
 
             vec![
-                push_r2, push_r1, mov10, push10, mov20, push20, pop10, pop20, add10_20, push_res,
-                pop_res, pop_r1, pop_r2,
+                push_fp, push_r2, push_r1, mov10, push10, mov20, push20, pop10, pop20, add10_20,
+                push_res, pop_res, pop_r1, pop_r2, pop_fp,
             ]
             .concat()
         };
@@ -190,9 +188,9 @@ mod test {
         // push(r0)
         let inst = I32Const(10);
         let expect = {
-            let mov10 = 0xe3a0000a_u32.to_le_bytes();
-            let push_r0 = 0xe52d0004_u32.to_le_bytes();
-            vec![mov10, push_r0]
+            let mov10 = 0xd2800140u32.to_le_bytes();
+            let push10 = 0xf8008fe0u32.to_le_bytes();
+            vec![mov10, push10]
         };
         let result = wasm2bin(&inst).expect("failed to convert");
         assert_eq!(result, expect);
@@ -215,12 +213,12 @@ mod test {
 
         let inst = I32Add;
         let expect = {
-            let pop_n = 0xe49d1004u32.to_le_bytes();
-            let pop_m = 0xe49d2004u32.to_le_bytes();
-            let add_ = 0xe0810002u32.to_le_bytes();
-            let push_res = 0xe52d0004u32.to_le_bytes();
+            let pop_n = 0xf84087e1u32.to_le_bytes();
+            let pop_m = 0xf84087e2u32.to_le_bytes();
+            let add10_20 = 0x8b020020u32.to_le_bytes();
+            let push_res = 0xf8008fe0u32.to_le_bytes();
 
-            vec![pop_n, pop_m, add_, push_res]
+            vec![pop_n, pop_m, add10_20, push_res]
         };
         let result = wasm2bin(&inst).expect("failed to convert");
         assert_eq!(result, expect);
