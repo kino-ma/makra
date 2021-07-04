@@ -83,7 +83,8 @@ fn push(src: u8) -> Result<Code> {
 
 fn pop(dist: u8) -> Result<Code> {
     validate_register(dist)?;
-    Ok(to_le([0xe4, 0x9d, dist << 4, 0x04]))
+    Ok((0xf84087e0 | shl32(reg::SP, 5) | dist as u32).to_le_bytes())
+    //Ok(to_le([0xe4, 0x9d, dist << 4, 0x04]))
 }
 
 fn to_le(mut code: Code) -> Code {
@@ -246,6 +247,14 @@ mod test {
         // add x0, x1, x2
         let expect = 0xf8008fe0u32.to_le_bytes();
         let result = push(0);
+        assert_eq!(result, Ok(expect));
+    }
+
+    #[test]
+    fn pop_correct() {
+        // add x0, x1, x2
+        let expect = 0xf84087e0u32.to_le_bytes();
+        let result = pop(0);
         assert_eq!(result, Ok(expect));
     }
 
