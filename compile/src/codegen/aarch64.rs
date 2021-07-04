@@ -70,8 +70,8 @@ fn add(dist: u8, src_n: u8, src_m: u8) -> Result<Code> {
     validate_register(dist)?;
     validate_register(src_n)?;
     validate_register(src_m)?;
-    // 1110_00_0_0100_0_[src_n; 4]_[dist; 4]_[shift; 5]_00_0_[src_m; 4]
-    Ok((0xe080_0000_u32 | shl32(src_n, 16) | shl32(dist, 12) | src_m as u32).to_le_bytes())
+    // 1000_1011_[shift; 2]_0_[src_m; 5]_[imm6]_[src_n; 5]_[dist; 5]
+    Ok((0x8b000000u32 | shl32(src_m, 16) | shl32(src_n, 5) | dist as u32).to_le_bytes())
 }
 
 fn push(src: u8) -> Result<Code> {
@@ -229,6 +229,14 @@ mod test {
         let expect = [4, 3, 2, 1];
         let result = to_le([1, 2, 3, 4]);
         assert_eq!(result, expect);
+    }
+
+    #[test]
+    fn add_correct() {
+        // add x0, x1, x2
+        let expect = 0x8b020020u32.to_le_bytes();
+        let result = add(0, 1, 2);
+        assert_eq!(result, Ok(expect));
     }
 
     fn get_wasm_binary() -> Vec<u8> {
