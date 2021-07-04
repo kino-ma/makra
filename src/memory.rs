@@ -59,39 +59,23 @@ pub struct KernelAllocator;
 unsafe impl GlobalAlloc for KernelAllocator {
     // FIXME: ensure that return address is multiple of layout.align()
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
-        println!("free count: {:?}", FREES);
         let size = aligned_size(&layout);
-        println!("required: {:?}", size);
 
         for i in 0..FREES {
-            println!("{:?} required, FREE[i] has {:?}", size, FREE[i].size);
             if FREE[i].size >= size {
                 let addr = FREE[i].addr as *mut u8;
                 FREE[i].addr += size as usize;
                 FREE[i].size -= size;
                 if FREE[i].size == 0 {
-                    println!("decrement i: {:?}", i);
                     FREES -= 1;
                     for j in i..FREES {
                         FREE[j] = FREE[j + 1];
                     }
                 }
-                println!(
-                    "used FREE[{:?}] = {{ addr : {:?}, size : {:?} }}",
-                    i, FREE[i].addr, FREE[i].size
-                );
-                println!(
-                    "FREE[{:?}] used, next: FREE[{:?}] = {{ addr : {:?}, size : {:?} }}",
-                    i,
-                    i + 1,
-                    FREE[i + 1].addr,
-                    FREE[i + 1].size
-                );
                 return addr;
             }
         }
 
-        println!("fail?");
         0 as *mut u8
     }
 
