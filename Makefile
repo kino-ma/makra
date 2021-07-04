@@ -46,6 +46,7 @@ DOC_CMD     = cargo doc $(COMPILER_ARGS)
 CLIPPY_CMD  = cargo clippy $(COMPILER_ARGS)
 CHECK_CMD   = cargo check $(COMPILER_ARGS)
 TEST_CMD   = cargo test
+AR_CMD = rust-ar crus
 OBJCOPY_CMD = rust-objcopy \
     --strip-all            \
     -O binary
@@ -61,16 +62,27 @@ DOCKER_TOOLS = $(DOCKER_CMD) $(DOCKER_IMAGE)
 
 EXEC_QEMU = $(QEMU_BINARY) -M $(QEMU_MACHINE_TYPE)
 
+WASM_BIN = compile/wasm-binaries/test.wasm
+WASM_OBJ = target/wasm_binary.o
+WASM_LIB = target/libwasm_binary.a
+
 .PHONY: all $(KERNEL_ELF) $(KERNEL_BIN) doc qemu clippy clean readelf objdump nm check test
 
 all: $(KERNEL_BIN)
 
-$(KERNEL_ELF):
+$(KERNEL_ELF): $(WASM_LIB)
 	$(call colorecho, "\nCompiling kernel - $(BSP)")
 	@RUSTFLAGS="$(RUSTFLAGS_PEDANTIC)" $(RUSTC_CMD)
 
 $(KERNEL_BIN): $(KERNEL_ELF)
 	@$(OBJCOPY_CMD) $(KERNEL_ELF) $(KERNEL_BIN)
+
+$(WASM_OBJ): $(WASM_BIN)
+	mkdir -p target
+	aarch64-none-elf-ld -r -b binary -o $(WASM_OBJ) $(WASM_BIN)
+
+$(WASM_LIB): $(WASM_OBJ)
+	$(AR_CMD) $(WASM_LIB) $(WASM_OBJ)
 
 doc:
 	$(call colorecho, "\nGenerating docs")
