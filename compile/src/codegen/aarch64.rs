@@ -1,3 +1,5 @@
+mod reg;
+
 use alloc::prelude::v1::*;
 
 use parity_wasm::elements::{
@@ -76,7 +78,7 @@ fn add(dist: u8, src_n: u8, src_m: u8) -> Result<Code> {
 
 fn push(src: u8) -> Result<Code> {
     validate_register(src)?;
-    Ok(to_le([0xe5, 0x2d, src << 4, 0x04]))
+    Ok((0xf8008c00 | shl32(reg::SP, 5) | src as u32).to_le_bytes())
 }
 
 fn pop(dist: u8) -> Result<Code> {
@@ -236,6 +238,14 @@ mod test {
         // add x0, x1, x2
         let expect = 0x8b020020u32.to_le_bytes();
         let result = add(0, 1, 2);
+        assert_eq!(result, Ok(expect));
+    }
+
+    #[test]
+    fn push_correct() {
+        // add x0, x1, x2
+        let expect = 0xf8008fe0u32.to_le_bytes();
+        let result = push(0);
         assert_eq!(result, Ok(expect));
     }
 
