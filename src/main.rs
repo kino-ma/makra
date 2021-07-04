@@ -10,6 +10,8 @@
 #[macro_use]
 extern crate alloc;
 
+use core::num::NonZeroUsize;
+
 use alloc::prelude::*;
 
 #[cfg(not(test))]
@@ -34,9 +36,30 @@ static GLOBAL_ALLOC: memory::KernelAllocator = memory::KernelAllocator;
 
 extern crate compile;
 
+extern "C" {
+    static _binary_compile_wasm_binaries_test_wasm_start: [u8; 32];
+}
+
 unsafe fn kernel_init() -> ! {
+    unsafe {
+        memory::init();
+    }
     println!("Hello QEMU!");
-    println!("value: {}", 1);
+    alloc::vec::Vec::new().push(1);
+    alloc::vec::Vec::new().push(1);
+    alloc::vec::Vec::new().push(1);
+    alloc::vec::Vec::new().push(1);
+    println!("vec");
+    use core::alloc::GlobalAlloc;
+    GLOBAL_ALLOC.alloc(core::alloc::Layout::from_size_align(384usize, 8).unwrap());
+    println!("me");
+    compile::Compiler::parse(&_binary_compile_wasm_binaries_test_wasm_start);
+    //compile::Compiler::parse(b"");
+    //println!("Hello QEMU 2!");
+    println!(
+        "bytes: {:?}",
+        &_binary_compile_wasm_binaries_test_wasm_start[..]
+    );
     panic!("Stopping...")
 }
 

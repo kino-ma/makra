@@ -59,81 +59,63 @@ pub struct KernelAllocator;
 unsafe impl GlobalAlloc for KernelAllocator {
     // FIXME: ensure that return address is multiple of layout.align()
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
-        for i in 0..FREES {
-            let size = aligned_size(&layout);
+        println!("free count: {:?}", FREES);
+        let size = aligned_size(&layout);
+        println!("required: {:?}", size);
 
+        for i in 0..FREES {
+            println!("{:?} required, FREE[i] has {:?}", size, FREE[i].size);
             if FREE[i].size >= size {
                 let addr = FREE[i].addr as *mut u8;
                 FREE[i].addr += size as usize;
                 FREE[i].size -= size;
                 if FREE[i].size == 0 {
+                    println!("decrement i: {:?}", i);
                     FREES -= 1;
                     for j in i..FREES {
                         FREE[j] = FREE[j + 1];
                     }
                 }
+                println!(
+                    "used FREE[{:?}] = {{ addr : {:?}, size : {:?} }}",
+                    i, FREE[i].addr, FREE[i].size
+                );
+                println!(
+                    "FREE[{:?}] used, next: FREE[{:?}] = {{ addr : {:?}, size : {:?} }}",
+                    i,
+                    i + 1,
+                    FREE[i + 1].addr,
+                    FREE[i + 1].size
+                );
                 return addr;
             }
         }
 
+        println!("fail?");
         0 as *mut u8
     }
 
     unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
-        let addr = ptr as usize;
-        let size = aligned_size(&layout);
-
-        let mut i = 0usize;
-        for j in 0..FREES {
-            if FREE[i].addr > addr {
-                i = j;
-                break;
-            }
+        // For easiness, just mark "unused" currently.
+        // We may concatenate free space or more efficent management may be used in the future.
+        if FREES >= MAX_FREES {
+            panic!("reached max allocation count");
         }
 
-        if i > 0 {
-            if FREE[i - 1].addr + FREE[i - 1].size as usize == addr {
-                FREE[i - 1].size += size;
-                if i < FREES {
-                    if addr + size as usize == FREE[i].addr {
-                        FREE[i - 1].size += FREE[i].size;
-                        FREES -= 1;
-                        for j in i..FREES {
-                            FREE[j] = FREE[j + 1];
-                        }
-                    }
-                }
-                return;
-            }
-        }
-
-        if i < FREES {
-            if addr + size as usize == FREE[i].addr {
-                FREE[i].addr = addr;
-                FREE[i].size += size;
-                return;
-            }
-        }
-
-        if FREES < MAX_FREES {
-            for j in (i + 1..=FREES).rev() {
-                FREE[j] = FREE[j - 1];
-            }
-
-            FREES -= 1;
-
-            FREE[i].addr = addr;
-            FREE[i].size = size;
-            return;
-        }
-
-        // FIXME: deallocation failed. abort?
-        println!("dealloc failed\n");
+        FREE[FREES] = FreeMemoryInfo {
+            size: layout.size(),
+            addr: ptr as usize,
+        };
     }
 }
 
 #[alloc_error_handler]
-fn foo(_: Layout) -> ! {
-    println!("alloc_error");
+fn foo(layout: Layout) -> ! {
+    println!("alloc_error: {:?}", layout);
+    unsafe {
+        for f in &FREE[..10] {
+            println!("addr: {:?}, size: {:?}", f.addr, f.size);
+        }
+    }
     loop {}
 }
