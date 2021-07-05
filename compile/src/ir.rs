@@ -3,7 +3,10 @@ use alloc::prelude::v1::*;
 use parity_wasm::elements::Module as WasmModule;
 
 use crate::codegen::generate_func;
-use crate::err::{Error::Failure, Result};
+use crate::err::{
+    Error::{Failure, ParseFailure},
+    Result,
+};
 
 /// Intermidate representation of a WebAssembly Module
 #[cfg_attr(test, derive(Debug))]
@@ -17,7 +20,7 @@ impl Module {
     }
 
     pub fn parse(buf: &[u8]) -> Result<Self> {
-        let module = parity_wasm::deserialize_buffer(buf).or(Err(Failure))?;
+        let module = parity_wasm::deserialize_buffer(buf).map_err(ParseFailure)?;
         Ok(Self::new(module))
     }
 

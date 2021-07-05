@@ -135,9 +135,9 @@ mod test {
             .concat()
         };
 
-        let result = generate_func(body);
+        let result = generate_func(body).expect("failed to generate");
 
-        assert_eq!(result, Ok(expect));
+        assert_eq!(result, expect);
     }
 
     #[test]
@@ -161,7 +161,10 @@ mod test {
         let inst = I32Const(num);
         let expect = TooLargeI32(num);
         let result = wasm2bin(&inst).expect_err("succeed to parse");
-        assert_eq!(result, expect);
+        match result {
+            expect => (),
+            _ => panic!("invalid error"),
+        }
     }
 
     #[test]
@@ -193,32 +196,32 @@ mod test {
     fn add_correct() {
         // add x0, x1, x2
         let expect = 0x8b020020u32.to_le_bytes();
-        let result = native::add(0, 1, 2);
-        assert_eq!(result, Ok(expect));
+        let result = native::add(0, 1, 2).expect("failed to generate");
+        assert_eq!(result, expect);
     }
 
     #[test]
     fn push_correct() {
         // push x0
         let expect = 0xf8008fe0u32.to_le_bytes();
-        let result = native::push(0);
-        assert_eq!(result, Ok(expect));
+        let result = native::push(0).expect("failed to generate");
+        assert_eq!(result, expect);
     }
 
     #[test]
     fn pop_correct() {
         // pop x0
         let expect = 0xf84087e0u32.to_le_bytes();
-        let result = native::pop(0);
-        assert_eq!(result, Ok(expect));
+        let result = native::pop(0).expect("failed to generate");
+        assert_eq!(result, expect);
     }
 
     #[test]
     fn mov_correct() {
         // mov x0, #10
         let expect = 0xd2800140u32.to_le_bytes();
-        let result = native::mov(0, 10);
-        assert_eq!(result, Ok(expect));
+        let result = native::mov(0, 10).expect("failed to generate");
+        assert_eq!(result, expect);
     }
 
     fn get_wasm_binary() -> Vec<u8> {
