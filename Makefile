@@ -66,7 +66,7 @@ WASM_BIN = compile/wasm-binaries/test.wasm
 WASM_OBJ = target/wasm_binary.o
 WASM_LIB = target/libwasm_binary.a
 
-.PHONY: all $(KERNEL_ELF) $(KERNEL_BIN) doc qemu clippy clean readelf objdump nm check test
+.PHONY: all $(KERNEL_ELF) $(KERNEL_BIN) doc qemu debug clippy clean readelf objdump nm check test
 
 all: $(KERNEL_BIN)
 
@@ -96,6 +96,9 @@ qemu: $(KERNEL_BIN)
 	$(call colorecho, "\nLaunching QEMU")
 	@$(DOCKER_QEMU) $(EXEC_QEMU) $(QEMU_RELEASE_ARGS) -kernel $(KERNEL_BIN)
 endif
+
+debug: $(KERNEL_BIN)
+	@$(DOCKER_QEMU) $(EXEC_QEMU) $(QEMU_RELEASE_ARGS) -kernel $(KERNEL_BIN) -s -S -singlestep
 
 clippy:
 	@RUSTFLAGS="$(RUSTFLAGS_PEDANTIC)" $(CLIPPY_CMD)
