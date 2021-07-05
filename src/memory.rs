@@ -31,6 +31,7 @@ extern "C" {
     static __kernel_heap_end__: usize;
     static __module_text_start__: usize;
     static __module_text_end__: usize;
+    static _binary_compile_wasm_binaries_test_wasm_start: [u8; 30];
 }
 
 #[inline]
@@ -113,4 +114,8 @@ pub fn module_text_start() -> usize {
 
 pub fn module_text_end() -> usize {
     unsafe { &__module_text_end__ as *const _ as usize }
+}
+
+pub fn wasm_binary() -> &'static [u8] {
+    unsafe { &_binary_compile_wasm_binaries_test_wasm_start }
 }

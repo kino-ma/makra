@@ -37,10 +37,6 @@ static GLOBAL_ALLOC: memory::KernelAllocator = memory::KernelAllocator;
 
 extern crate compile;
 
-extern "C" {
-    static _binary_compile_wasm_binaries_test_wasm_start: [u8; 30];
-}
-
 unsafe fn kernel_init() -> ! {
     memory::init();
     kernel_main();
@@ -49,10 +45,9 @@ unsafe fn kernel_init() -> ! {
 
 fn kernel_main() {
     println!("Hello QEMU!");
-    println!(
-        "read wasm binary: {:x?}",
-        &_binary_compile_wasm_binaries_test_wasm_start[..]
-    );
+
+    let wasm_binary = memory::wasm_binary();
+    println!("read wasm binary: {:x?}", &wasm_binary[..]);
 
     println!(
         "module address: {:x?} ~ {:x?} ({:x?})",
@@ -61,20 +56,21 @@ fn kernel_main() {
         memory::module_text_end() - memory::module_text_start()
     );
 
-    let module = Compiler::parse(&_binary_compile_wasm_binaries_test_wasm_start[..])
-        .expect("failed to parse");
+    let module = Compiler::parse(wasm_binary).expect("failed to parse");
 
     let func_bin = module.generate().expect("failed to generate");
+    let call_res: usize = unsafe { call_binary(&func_bin) };
+
+    println!("function result: 10 + 20 = {:?}", call_res);
+}
+
+unsafe extern "C" fn call_binary<T>(bin: &[u8]) -> T {
     let mut func_mem = memory::module_text_start() as *mut u8;
 
-    let res = unsafe {
-        core::ptr::copy(func_bin.as_ptr(), func_mem, func_bin.len());
-        let func_ptr: extern "C" fn() -> u64 = core::mem::transmute(func_mem);
-        asm!("nop");
-        func_ptr()
-    };
+    core::ptr::copy(bin.as_ptr(), func_mem, bin.len());
+    let func_ptr = core::mem::transmute::<_, fn() -> T>(func_mem);
 
-    println!("res: 10 + 20 = {:?}", res);
+    func_ptr()
 }
 
 #[cfg(test)]
