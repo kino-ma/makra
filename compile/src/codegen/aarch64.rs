@@ -30,6 +30,8 @@ pub fn generate_func(body: &FuncBody) -> Result<Vec<u8>> {
     registers.push(0);
     v.extend(epilogue(&registers)?.concat());
 
+    v.extend(native::ret());
+
     Ok(v)
 }
 
@@ -127,10 +129,11 @@ mod test {
             let pop_r1 = 0xf84087e1u32.to_le_bytes();
             let pop_r2 = 0xf84087e2u32.to_le_bytes();
             let pop_fp = 0xf84087fdu32.to_le_bytes();
+            let ret = 0xd65f03c0u32.to_le_bytes();
 
             vec![
                 push_fp, push_r2, push_r1, mov10, push10, mov20, push20, pop10, pop20, add10_20,
-                push_res, pop_res, pop_r1, pop_r2, pop_fp,
+                push_res, pop_res, pop_r1, pop_r2, pop_fp, ret,
             ]
             .concat()
         };

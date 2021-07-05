@@ -32,6 +32,10 @@ pub fn pop(dist: u8) -> Result<Code> {
     //Ok(to_le([0xe4, 0x9d, dist << 4, 0x04]))
 }
 
+pub fn ret() -> Code {
+    0xd65f03c0u32.to_le_bytes()
+}
+
 fn validate_register(reg: u8) -> Result<()> {
     if reg > 31 {
         Err(InvalidRegister(reg))

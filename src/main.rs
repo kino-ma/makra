@@ -63,11 +63,12 @@ unsafe fn kernel_init() -> ! {
     let func_bin = module.generate().expect("failed to generate");
     println!("{:?}", func_bin);
     let mut func_mem = memory::module_text_start() as *mut u8;
-    unsafe {
+    let res = unsafe {
         core::ptr::copy(func_bin.as_ptr(), func_mem, func_bin.len());
-        let func_ptr: extern "C" fn() = core::mem::transmute(func_mem);
-        func_ptr();
-    }
+        let func_ptr: extern "C" fn() -> u64 = core::mem::transmute(func_mem);
+        func_ptr()
+    };
+    println!("res: 10 + 20 = {:?}", res);
     panic!("Stopping...")
 }
 
