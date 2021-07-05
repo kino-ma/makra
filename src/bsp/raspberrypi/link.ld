@@ -6,6 +6,7 @@ PHDRS
 {
     segment_rx PT_LOAD FLAGS(5); /* 5 == RX */
     segment_rw PT_LOAD FLAGS(6); /* 6 == RW */
+    segment_rwx PT_LOAD FLAGS(7); /* 7 == RWX */
 }
 
 SECTIONS
@@ -50,4 +51,12 @@ SECTIONS
 
     . = ALIGN(4096);
     __kernel_heap_end__ = .;
+
+    .moduletext : ALIGN(8) {
+        __module_text_start__ = .;
+        . += 0x100000;
+    } :segment_rwx
+
+    . = ALIGN(4096);
+    __module_text_end__ = .;
 }

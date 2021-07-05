@@ -13,6 +13,7 @@ extern crate alloc;
 use core::num::NonZeroUsize;
 
 use alloc::prelude::*;
+use compile::Compiler;
 
 #[cfg(not(test))]
 #[macro_use]
@@ -37,7 +38,7 @@ static GLOBAL_ALLOC: memory::KernelAllocator = memory::KernelAllocator;
 extern crate compile;
 
 extern "C" {
-    static _binary_compile_wasm_binaries_test_wasm_start: [u8; 32];
+    static _binary_compile_wasm_binaries_test_wasm_start: [u8; 30];
 }
 
 unsafe fn kernel_init() -> ! {
@@ -49,6 +50,24 @@ unsafe fn kernel_init() -> ! {
         "wasm bytes: {:?}",
         &_binary_compile_wasm_binaries_test_wasm_start[..]
     );
+
+    println!(
+        "module: {:?} ~ {:?} ({:?})",
+        memory::module_text_start(),
+        memory::module_text_end(),
+        memory::module_text_end() - memory::module_text_start()
+    );
+
+    let module = Compiler::parse(&_binary_compile_wasm_binaries_test_wasm_start[..])
+        .expect("failed to parse");
+    let func_bin = module.generate().expect("failed to generate");
+    println!("{:?}", func_bin);
+    let mut func_mem = memory::module_text_start() as *mut u8;
+    unsafe {
+        core::ptr::copy(func_bin.as_ptr(), func_mem, func_bin.len());
+        let func_ptr: extern "C" fn() = core::mem::transmute(func_mem);
+        func_ptr();
+    }
     panic!("Stopping...")
 }
 

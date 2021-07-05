@@ -29,6 +29,8 @@ static mut FREE: [FreeMemoryInfo; MAX_FREES] = [FreeMemoryInfo { addr: 0, size: 
 extern "C" {
     static __kernel_heap_start__: usize;
     static __kernel_heap_end__: usize;
+    static __module_text_start__: usize;
+    static __module_text_end__: usize;
 }
 
 #[inline]
@@ -40,6 +42,7 @@ fn kernel_heap_start() -> usize {
 fn kernel_heap_end() -> usize {
     unsafe { &__kernel_heap_end__ as *const _ as usize }
 }
+
 pub unsafe fn init() {
     FREES = 1;
     FREE[0] = FreeMemoryInfo {
@@ -102,4 +105,12 @@ fn foo(layout: Layout) -> ! {
         }
     }
     loop {}
+}
+
+pub fn module_text_start() -> usize {
+    unsafe { &__module_text_start__ as *const _ as usize }
+}
+
+pub fn module_text_end() -> usize {
+    unsafe { &__module_text_end__ as *const _ as usize }
 }
