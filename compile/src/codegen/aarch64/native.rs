@@ -22,8 +22,9 @@ pub fn add(dist: u8, src_n: u8, src_m: u8) -> Result<Code> {
 }
 
 pub fn push(src: u8) -> Result<Code> {
+    // 1111_1000_000_[#imm9]_11_[SP; 5]_[src; 5]
     validate_register(src)?;
-    Ok((0xf8008c00 | shl32(reg::SP, 5) | src as u32).to_le_bytes())
+    Ok((0xf81f8fe0 | shl32(reg::SP, 5) | src as u32).to_le_bytes())
 }
 
 pub fn pop(dist: u8) -> Result<Code> {

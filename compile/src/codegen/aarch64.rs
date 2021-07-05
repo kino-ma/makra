@@ -131,17 +131,17 @@ mod test {
         let body = &bodies[0];
 
         let expect = {
-            let push_fp = 0xf8008ffdu32.to_le_bytes();
-            let push_r2 = 0xf8008fe2u32.to_le_bytes();
-            let push_r1 = 0xf8008fe1u32.to_le_bytes();
+            let push_fp = 0xf81f8ffdu32.to_le_bytes();
+            let push_r2 = 0xf81f8fe2u32.to_le_bytes();
+            let push_r1 = 0xf81f8fe1u32.to_le_bytes();
             let mov10 = 0xd2800140u32.to_le_bytes();
-            let push10 = 0xf8008fe0u32.to_le_bytes();
+            let push10 = 0xf81f8fe0u32.to_le_bytes();
             let mov20 = 0xd2800280u32.to_le_bytes();
-            let push20 = 0xf8008fe0u32.to_le_bytes();
+            let push20 = 0xf81f8fe0u32.to_le_bytes();
             let pop10 = 0xf84087e1u32.to_le_bytes();
             let pop20 = 0xf84087e2u32.to_le_bytes();
             let add10_20 = 0x8b020020u32.to_le_bytes();
-            let push_res = 0xf8008fe0u32.to_le_bytes();
+            let push_res = 0xf81f8fe0u32.to_le_bytes();
             let pop_res = 0xf84087e0u32.to_le_bytes();
             let pop_r1 = 0xf84087e1u32.to_le_bytes();
             let pop_r2 = 0xf84087e2u32.to_le_bytes();
@@ -167,7 +167,7 @@ mod test {
         let inst = I32Const(10);
         let expect = {
             let mov10 = 0xd2800140u32.to_le_bytes();
-            let push10 = 0xf8008fe0u32.to_le_bytes();
+            let push10 = 0xf81f8fe0u32.to_le_bytes();
             vec![mov10, push10]
         };
         let result = wasm2bin(&inst).expect("failed to convert");
@@ -197,7 +197,7 @@ mod test {
             let pop_n = 0xf84087e1u32.to_le_bytes();
             let pop_m = 0xf84087e2u32.to_le_bytes();
             let add10_20 = 0x8b020020u32.to_le_bytes();
-            let push_res = 0xf8008fe0u32.to_le_bytes();
+            let push_res = 0xf81f8fe0u32.to_le_bytes();
 
             vec![pop_n, pop_m, add10_20, push_res]
         };
@@ -223,8 +223,8 @@ mod test {
     #[test]
     fn push_correct() {
         // push x0
-        let expect = 0xf8008fe0u32.to_le_bytes();
-        let result = native::push(0).expect("failed to generate");
+        let expect = 0xf81f8fe1u32.to_le_bytes();
+        let result = native::push(1).expect("failed to generate");
         assert_eq!(result, expect);
     }
 
