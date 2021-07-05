@@ -42,17 +42,20 @@ extern "C" {
 }
 
 unsafe fn kernel_init() -> ! {
-    unsafe {
-        memory::init();
-    }
+    memory::init();
+    kernel_main();
+    panic!("Stopping...")
+}
+
+fn kernel_main() {
     println!("Hello QEMU!");
     println!(
-        "wasm bytes: {:?}",
+        "read wasm binary: {:x?}",
         &_binary_compile_wasm_binaries_test_wasm_start[..]
     );
 
     println!(
-        "module: {:?} ~ {:?} ({:?})",
+        "module address: {:x?} ~ {:x?} ({:x?})",
         memory::module_text_start(),
         memory::module_text_end(),
         memory::module_text_end() - memory::module_text_start()
@@ -60,17 +63,18 @@ unsafe fn kernel_init() -> ! {
 
     let module = Compiler::parse(&_binary_compile_wasm_binaries_test_wasm_start[..])
         .expect("failed to parse");
+
     let func_bin = module.generate().expect("failed to generate");
-    println!("{:?}", func_bin);
     let mut func_mem = memory::module_text_start() as *mut u8;
-    let res = {
+
+    let res = unsafe {
         core::ptr::copy(func_bin.as_ptr(), func_mem, func_bin.len());
         let func_ptr: extern "C" fn() -> u64 = core::mem::transmute(func_mem);
         asm!("nop");
         func_ptr()
     };
+
     println!("res: 10 + 20 = {:?}", res);
-    panic!("Stopping...")
 }
 
 #[cfg(test)]
