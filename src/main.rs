@@ -13,7 +13,7 @@ extern crate alloc;
 use core::num::NonZeroUsize;
 
 use alloc::prelude::*;
-use compile::Compiler;
+use compile::{codegen::sample_binary, Compiler};
 
 #[cfg(not(test))]
 #[macro_use]
@@ -61,12 +61,13 @@ unsafe fn kernel_init() -> ! {
     let module = Compiler::parse(&_binary_compile_wasm_binaries_test_wasm_start[..])
         .expect("failed to parse");
     //let func_bin = module.generate().expect("failed to generate");
-    let func_bin = compile::codegen::sample_binary();
+    let func_bin = compile::codegen::sample_binary2();
     println!("{:?}", func_bin);
     let mut func_mem = memory::module_text_start() as *mut u8;
-    let res = unsafe {
+    let res = {
         core::ptr::copy(func_bin.as_ptr(), func_mem, func_bin.len());
         let func_ptr: extern "C" fn() -> u64 = core::mem::transmute(func_mem);
+        asm!("nop");
         func_ptr()
     };
     println!("res: 10 + 20 = {:?}", res);
