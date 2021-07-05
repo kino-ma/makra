@@ -15,3 +15,5 @@
 	ldr x1, [sp], #8
 	ldr x2, [sp], #8
 	ldr fp, [sp], #8
+
+	ret
