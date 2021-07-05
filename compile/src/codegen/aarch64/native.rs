@@ -48,3 +48,40 @@ fn validate_register(reg: u8) -> Result<()> {
 fn shl32(x: u8, rhs: u32) -> u32 {
     (x as u32).wrapping_shl(rhs)
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn add_correct() {
+        // add x0, x1, x2
+        let expect = 0x8b020020u32.to_le_bytes();
+        let result = add(0, 1, 2).expect("failed to generate");
+        assert_eq!(result, expect);
+    }
+
+    #[test]
+    fn push_correct() {
+        // push x0
+        let expect = 0xf81f8fe1u32.to_le_bytes();
+        let result = push(1).expect("failed to generate");
+        assert_eq!(result, expect);
+    }
+
+    #[test]
+    fn pop_correct() {
+        // pop x0
+        let expect = 0xf84087e0u32.to_le_bytes();
+        let result = pop(0).expect("failed to generate");
+        assert_eq!(result, expect);
+    }
+
+    #[test]
+    fn mov_correct() {
+        // mov x0, #10
+        let expect = 0xd2800140u32.to_le_bytes();
+        let result = mov(0, 10).expect("failed to generate");
+        assert_eq!(result, expect);
+    }
+}
