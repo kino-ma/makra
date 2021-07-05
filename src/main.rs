@@ -60,7 +60,8 @@ unsafe fn kernel_init() -> ! {
 
     let module = Compiler::parse(&_binary_compile_wasm_binaries_test_wasm_start[..])
         .expect("failed to parse");
-    let func_bin = module.generate().expect("failed to generate");
+    //let func_bin = module.generate().expect("failed to generate");
+    let func_bin = compile::codegen::sample_binary();
     println!("{:?}", func_bin);
     let mut func_mem = memory::module_text_start() as *mut u8;
     let res = unsafe {

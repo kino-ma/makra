@@ -12,6 +12,13 @@ use crate::err::{Error::*, Result};
 
 pub type Code = [u8; 4];
 
+pub fn sample_binary() -> Vec<u8> {
+    let mut v = Vec::new();
+    v.push(native::mov(0, 57).unwrap());
+    v.push(native::ret());
+    v.concat()
+}
+
 pub fn generate_func(body: &FuncBody) -> Result<Vec<u8>> {
     let mut v: Vec<u8> = Vec::new();
     //TODO LOCALS
