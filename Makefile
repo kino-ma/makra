@@ -9,7 +9,7 @@ ifeq ($(BSP),rpi3)
     KERNEL_BIN        = kernel8.img
     QEMU_BINARY       = qemu-system-aarch64
     QEMU_MACHINE_TYPE = raspi3
-    QEMU_RELEASE_ARGS = -d in_asm -display none
+    QEMU_RELEASE_ARGS = -serial stdio -display none
     OBJDUMP_BINARY    = aarch64-none-elf-objdump
     NM_BINARY         = aarch64-none-elf-nm
     READELF_BINARY    = aarch64-none-elf-readelf
@@ -20,7 +20,7 @@ else ifeq ($(BSP),rpi4)
     KERNEL_BIN        = kernel8.img
     QEMU_BINARY       = qemu-system-aarch64
     QEMU_MACHINE_TYPE =
-    QEMU_RELEASE_ARGS = -d in_asm -display none
+    QEMU_RELEASE_ARGS = -serial stdio -display none
     OBJDUMP_BINARY    = aarch64-none-elf-objdump
     NM_BINARY         = aarch64-none-elf-nm
     READELF_BINARY    = aarch64-none-elf-readelf
@@ -34,7 +34,7 @@ export LINKER_FILE
 QEMU_MISSING_STRING = "This board is not yet supported for QEMU."
 
 RUSTFLAGS          = -C link-arg=-T$(LINKER_FILE) $(RUSTC_MISC_ARGS)
-RUSTFLAGS_PEDANTIC = $(RUSTFLAGS) -D warnings -D missing_docs
+RUSTFLAGS_PEDANTIC = $(RUSTFLAGS)
 
 
 FEATURES      = --features bsp_$(BSP)
@@ -46,6 +46,8 @@ RUSTC_CMD   = cargo rustc $(COMPILER_ARGS)
 DOC_CMD     = cargo doc $(COMPILER_ARGS)
 CLIPPY_CMD  = cargo clippy $(COMPILER_ARGS)
 CHECK_CMD   = cargo check $(COMPILER_ARGS)
+TEST_CMD   = cargo test
+AR_CMD = rust-ar crus
 OBJCOPY_CMD = rust-objcopy \
     --strip-all            \
     -O binary
@@ -61,16 +63,27 @@ DOCKER_TOOLS = $(DOCKER_CMD) $(DOCKER_IMAGE)
 
 EXEC_QEMU = $(QEMU_BINARY) -M $(QEMU_MACHINE_TYPE)
 
-.PHONY: all $(KERNEL_ELF) $(KERNEL_BIN) doc qemu clippy clean readelf objdump nm check setup-dev-env
+WASM_BIN = compile/wasm-binaries/test.wasm
+WASM_OBJ = target/wasm_binary.o
+WASM_LIB = target/libwasm_binary.a
+
+.PHONY: all $(KERNEL_ELF) $(KERNEL_BIN) doc qemu debug clippy clean readelf objdump nm check test setup-dev-env
 
 all: $(KERNEL_BIN)
 
-$(KERNEL_ELF):
+$(KERNEL_ELF): $(WASM_LIB)
 	$(call colorecho, "\nCompiling kernel - $(BSP)")
 	@RUSTFLAGS="$(RUSTFLAGS_PEDANTIC)" $(RUSTC_CMD)
 
 $(KERNEL_BIN): $(KERNEL_ELF)
 	@$(OBJCOPY_CMD) $(KERNEL_ELF) $(KERNEL_BIN)
+
+$(WASM_OBJ): $(WASM_BIN)
+	mkdir -p target
+	aarch64-none-elf-ld -r -b binary -o $(WASM_OBJ) $(WASM_BIN)
+
+$(WASM_LIB): $(WASM_OBJ)
+	$(AR_CMD) $(WASM_LIB) $(WASM_OBJ)
 
 doc:
 	$(call colorecho, "\nGenerating docs")
@@ -84,6 +97,9 @@ qemu: $(KERNEL_BIN)
 	$(call colorecho, "\nLaunching QEMU")
 	@$(DOCKER_QEMU) $(EXEC_QEMU) $(QEMU_RELEASE_ARGS) -kernel $(KERNEL_BIN)
 endif
+
+debug: $(KERNEL_BIN)
+	@$(DOCKER_QEMU) $(EXEC_QEMU) $(QEMU_RELEASE_ARGS) -kernel $(KERNEL_BIN) -s -S -singlestep
 
 clippy:
 	@RUSTFLAGS="$(RUSTFLAGS_PEDANTIC)" $(CLIPPY_CMD)
@@ -117,3 +133,6 @@ setup-dev-env:
 	rustup override set nightly
 	rustup target add aarch64-unknown-none-softfloat
 	sed -i -e s/feature\(const_fn\)/feature\(const_fn_trait_bound\)/ ~/.cargo/registry/src/github.com-*/tock-registers-0.6.0/src/lib.rs
+
+test:
+	@RUST_TEST=true $(TEST_CMD)
