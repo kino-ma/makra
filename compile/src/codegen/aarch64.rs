@@ -35,6 +35,8 @@ pub fn generate_func(body: &FuncBody) -> Result<Vec<u8>> {
     // prologue
     // we use r0 to return result
     let registers = [1, 2];
+
+    v.extend(create_frame(&registers, body.locals())?);
     v.extend(prologue(&registers)?.concat());
 
     v.extend(locals(body.locals())?.concat());
@@ -47,7 +49,7 @@ pub fn generate_func(body: &FuncBody) -> Result<Vec<u8>> {
     // epilogue
     let mut registers = registers.to_vec();
     registers.push(0);
-    v.extend(epilogue(&registers)?.concat());
+    v.extend(clear_frame(&registers)?.concat());
 
     v.extend(native::ret());
 
@@ -90,7 +92,15 @@ fn to_le(mut code: Code) -> Code {
     code
 }
 
-fn locals(variables: &[Local]) -> Result<Vec<Code>> {
+fn create_frame(registers: &[u8], locals: &[Local]) -> Result<Vec<Code>> {
+    Err(Failure)
+}
+
+fn clear_frame(registers: &[u8], locals: &[Local]) -> Result<Vec<Code>> {
+    Err(Failure)
+}
+
+fn setup_locals(variables: &[Local]) -> Result<Vec<Code>> {
     Err(Failure)
 }
 
