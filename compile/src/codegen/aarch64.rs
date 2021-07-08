@@ -15,7 +15,7 @@ pub type Code = [u8; 4];
 
 pub fn sample_binary() -> Vec<u8> {
     let mut v = Vec::new();
-    v.push(native::mov(0, 57).unwrap());
+    v.push(native::mov_val(0, 57).unwrap());
     v.push(native::ret());
     v.concat()
 }
@@ -61,7 +61,7 @@ fn wasm2bin(inst: &Instruction) -> Result<Vec<Code>> {
     match inst {
         I32Const(x) => {
             let x = *x;
-            let mov_r0 = native::mov(0, x)?;
+            let mov_r0 = native::mov_val(0, x)?;
             let push_r0 = native::push(0)?;
             Ok(vec![mov_r0, push_r0])
         }
@@ -102,7 +102,6 @@ fn clear_frame(registers: &[u8]) -> Result<Vec<Code>> {
     Err(Failure)
 }
 
-/// Push given registers in reversed order
 fn save_registers(registers: &[u8]) -> Result<Vec<Code>> {
     let mut registers = registers.to_owned();
     // frame pointer
@@ -118,9 +117,7 @@ fn save_registers(registers: &[u8]) -> Result<Vec<Code>> {
     registers.iter().copied().map(native::push).collect();
 }
 
-fn setup_locals(variables: &[Local]) -> Result<Vec<Code>> {
-    Err(Failure)
-}
+fn setup_locals(variables: &[Local]) -> Result<Vec<Code>> {}
 
 /// Pop given registers
 fn epilogue(registers: &[u8]) -> Result<Vec<Code>> {

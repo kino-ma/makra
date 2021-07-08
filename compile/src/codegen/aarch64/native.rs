@@ -3,7 +3,7 @@ use crate::err::{Error::*, Result};
 use super::reg;
 use super::Code;
 
-pub fn mov(dist: u8, val: i32) -> Result<Code> {
+pub fn mov_val(dist: u8, val: i32) -> Result<Code> {
     validate_register(dist)?;
     // 1101_0010_100_[#imm; 16]_[dist; 5]
     if val >= 1i32 << 15 {
@@ -11,6 +11,13 @@ pub fn mov(dist: u8, val: i32) -> Result<Code> {
     } else {
         Ok((0xd2800000 | (val as u32) << 5 | dist as u32).to_le_bytes())
     }
+}
+
+pub fn mov_reg(dist: u8, src: u8) -> Result<Code> {
+    validate_register(dist)?;
+    validate_register(src)?;
+    // 1010_1010_000_[src; 5]_0000_00_[XZR; 5 = 11111]_[dist; 5]
+    Ok((0xaa0003e0 | shl32(src, 16) | dist as u32).to_le_bytes())
 }
 
 pub fn add(dist: u8, src_n: u8, src_m: u8) -> Result<Code> {
@@ -78,10 +85,18 @@ mod test {
     }
 
     #[test]
-    fn mov_correct() {
+    fn mov_val_correct() {
         // mov x0, #10
         let expect = 0xd2800140u32.to_le_bytes();
-        let result = mov(0, 10).expect("failed to generate");
+        let result = mov_val(0, 10).expect("failed to generate");
+        assert_eq!(result, expect);
+    }
+
+    #[test]
+    fn mov_reg_correct() {
+        // mov x1, x2
+        let expect = 0xaa0203e1u32.to_le_bytes();
+        let result = mov_reg(1, 2).expect("failed to generate");
         assert_eq!(result, expect);
     }
 }
