@@ -37,7 +37,7 @@ pub fn generate_func(body: &FuncBody) -> Result<Vec<u8>> {
     let registers = [1, 2];
 
     v.extend(create_frame(&registers, body.locals())?);
-    v.extend(prologue(&registers)?.concat());
+    v.extend(save_registers(&registers)?.concat());
 
     v.extend(locals(body.locals())?.concat());
 
@@ -93,29 +93,33 @@ fn to_le(mut code: Code) -> Code {
 }
 
 fn create_frame(registers: &[u8], locals: &[Local]) -> Result<Vec<Code>> {
-    Err(Failure)
+    let v = Vec::new();
+    v.extend(save_registers(registers)?);
+    v.extend(setup_locals(locals)?);
 }
 
-fn clear_frame(registers: &[u8], locals: &[Local]) -> Result<Vec<Code>> {
-    Err(Failure)
-}
-
-fn setup_locals(variables: &[Local]) -> Result<Vec<Code>> {
+fn clear_frame(registers: &[u8]) -> Result<Vec<Code>> {
     Err(Failure)
 }
 
 /// Push given registers in reversed order
-fn prologue(registers: &[u8]) -> Result<Vec<Code>> {
-    let mut registers_owned = registers.to_owned();
-    // x29, frame pointer;
-    registers_owned.push(29);
+fn save_registers(registers: &[u8]) -> Result<Vec<Code>> {
+    let mut registers = registers.to_owned();
+    // frame pointer
+    registers.push(reg::FP);
+    // link register; holds return address
+    registers.push(reg::LR);
 
-    registers_owned.dedup();
+    registers.dedup();
 
-    // sort in reversed order
-    registers_owned.sort_by(|a, b| b.cmp(a));
+    // sort by reversed order
+    registers.sort_by(|a, b| b.cmp(a));
 
-    registers_owned.iter().copied().map(native::push).collect()
+    registers.iter().copied().map(native::push).collect();
+}
+
+fn setup_locals(variables: &[Local]) -> Result<Vec<Code>> {
+    Err(Failure)
 }
 
 /// Pop given registers
