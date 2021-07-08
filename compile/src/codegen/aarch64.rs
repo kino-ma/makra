@@ -36,10 +36,7 @@ pub fn generate_func(body: &FuncBody) -> Result<Vec<u8>> {
     // we use r0 to return result
     let registers = [1, 2];
 
-    v.extend(create_frame(&registers, body.locals())?);
-    v.extend(save_registers(&registers)?.concat());
-
-    v.extend(locals(body.locals())?.concat());
+    v.extend(create_frame(&registers, body.locals())?.concat());
 
     for i in body.code().elements().iter() {
         let code = wasm2bin(i)?;
@@ -93,9 +90,11 @@ fn to_le(mut code: Code) -> Code {
 }
 
 fn create_frame(registers: &[u8], locals: &[Local]) -> Result<Vec<Code>> {
-    let v = Vec::new();
+    let mut v = Vec::new();
     v.extend(save_registers(registers)?);
     v.extend(setup_locals(locals)?);
+
+    Ok(v)
 }
 
 fn clear_frame(registers: &[u8]) -> Result<Vec<Code>> {
@@ -114,10 +113,12 @@ fn save_registers(registers: &[u8]) -> Result<Vec<Code>> {
     // sort by reversed order
     registers.sort_by(|a, b| b.cmp(a));
 
-    registers.iter().copied().map(native::push).collect();
+    registers.iter().copied().map(native::push).collect()
 }
 
-fn setup_locals(variables: &[Local]) -> Result<Vec<Code>> {}
+fn setup_locals(variables: &[Local]) -> Result<Vec<Code>> {
+    Err(Failure)
+}
 
 /// Pop given registers
 fn epilogue(registers: &[u8]) -> Result<Vec<Code>> {
