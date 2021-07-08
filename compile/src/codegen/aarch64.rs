@@ -6,6 +6,7 @@ use alloc::prelude::v1::*;
 use parity_wasm::elements::{
     FuncBody,
     Instruction::{self, *},
+    Local,
 };
 
 use crate::err::{Error::*, Result};
@@ -31,11 +32,12 @@ pub fn sample_binary2() -> Vec<u8> {
 
 pub fn generate_func(body: &FuncBody) -> Result<Vec<u8>> {
     let mut v: Vec<u8> = Vec::new();
-    //TODO LOCALS
     // prologue
     // we use r0 to return result
     let registers = [1, 2];
     v.extend(prologue(&registers)?.concat());
+
+    v.extend(locals(body.locals())?.concat());
 
     for i in body.code().elements().iter() {
         let code = wasm2bin(i)?;
@@ -86,6 +88,10 @@ fn to_le(mut code: Code) -> Code {
     code[1] = t;
 
     code
+}
+
+fn locals(variables: &[Local]) -> Result<Vec<Code>> {
+    Err(Failure)
 }
 
 /// Push given registers in reversed order
