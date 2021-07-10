@@ -52,8 +52,8 @@ fn validate_register(reg: u8) -> Result<()> {
     }
 }
 
-fn shl32(x: u8, rhs: u32) -> u32 {
-    (x as u32).wrapping_shl(rhs)
+fn shl32<T: Into<u32>>(x: T, rhs: u32) -> u32 {
+    x.into().wrapping_shl(rhs)
 }
 
 #[cfg(test)]
