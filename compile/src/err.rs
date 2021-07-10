@@ -6,6 +6,6 @@ pub enum Error {
     Failure,
     TooLargeI32(i32),
     InvalidRegister(u8),
-    NotImplemented,
+    NotImplemented(&'static str),
     ParseFailure(SerializationError),
 }

@@ -56,7 +56,7 @@ fn wasm2bin(inst: &Instruction) -> Result<Vec<Code>> {
 
         End => Ok(vec![]),
 
-        _ => Err(NotImplemented),
+        _ => Err(NotImplemented("instruction")),
     }
 }
 
@@ -69,7 +69,7 @@ fn create_frame(registers: &[u8], locals: &[Local]) -> Result<Vec<Code>> {
 }
 
 fn clear_frame(registers: &[u8]) -> Result<Vec<Code>> {
-    Err(Failure)
+    Err(NotImplemented("clear_frame"))
 }
 
 fn save_registers(registers: &[u8]) -> Result<Vec<Code>> {
@@ -88,7 +88,7 @@ fn save_registers(registers: &[u8]) -> Result<Vec<Code>> {
 }
 
 fn setup_locals(variables: &[Local]) -> Result<Vec<Code>> {
-    Err(Failure)
+    Err(NotImplemented("setup_locals"))
 }
 
 /// Pop given registers
@@ -230,13 +230,6 @@ mod test {
             vec![pop_n, pop_m, add10_20, push_res]
         };
         let result = wasm2bin(&inst).expect("failed to convert");
-        assert_eq!(result, expect);
-    }
-
-    #[test]
-    fn te_le_correct() {
-        let expect = [4, 3, 2, 1];
-        let result = to_le([1, 2, 3, 4]);
         assert_eq!(result, expect);
     }
 
