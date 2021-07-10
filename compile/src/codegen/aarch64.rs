@@ -24,6 +24,7 @@ pub fn generate_func(body: &FuncBody) -> Result<Vec<u8>> {
 
     for i in body.code().elements().iter() {
         let code = wasm2bin(i)?;
+        debug(&format!("{:?}", code));
         v.extend(code.concat());
     }
 
@@ -37,21 +38,29 @@ pub fn generate_func(body: &FuncBody) -> Result<Vec<u8>> {
     Ok(v)
 }
 
+pub fn debug(s: &str) {
+    #[cfg(test)]
+    {
+        extern crate std;
+        std::println!("{}", s);
+    }
+}
+
 fn wasm2bin(inst: &Instruction) -> Result<Vec<Code>> {
     // for now, we use r0, r1, r2 to general operations
     match inst {
         I32Const(x) => {
             let x = *x;
-            let mov_r0 = native::mov_val(0, x)?;
-            let push_r0 = native::push(0)?;
+            let mov_r0 = native::mov_val(9, x)?;
+            let push_r0 = native::push(9)?;
             Ok(vec![mov_r0, push_r0])
         }
 
         I32Add => {
-            let pop_1 = native::pop(1)?;
-            let pop_2 = native::pop(2)?;
-            let add_ = native::add_reg(0, 1, 2)?;
-            let push_r0 = native::push(0)?;
+            let pop_1 = native::pop(9)?;
+            let pop_2 = native::pop(10)?;
+            let add_ = native::add_reg(9, 9, 10)?;
+            let push_r0 = native::push(9)?;
             Ok(vec![pop_1, pop_2, add_, push_r0])
         }
 
@@ -83,11 +92,13 @@ fn create_frame(registers: &[u8], locals: &[Local]) -> Result<Vec<Code>> {
 
 fn clear_frame(registers: &[u8], locals: &[Local]) -> Result<Vec<Code>> {
     let mut v = Vec::new();
-    v.extend(load_registers(registers)?);
 
-    let mem_size = native::local_size_aligned(locals.len() as u32);
+    let count = locals_count(locals);
+    let mem_size = native::local_size_aligned(count);
     let destroy_frame = native::add_imm(reg::SP, reg::SP, mem_size)?;
     v.push(destroy_frame);
+
+    v.extend(load_registers(registers)?);
 
     Ok(v)
 }
@@ -109,31 +120,39 @@ fn frame_registers(registers: &[u8], ascending: bool) -> Vec<u8> {
     // link register; holds return address
     v.push(reg::LR);
 
+    v.extend(registers);
     v.dedup();
 
     // sort by reversed order
     if ascending {
-        v.sort();
+        v.sort_by(|a, b| a.cmp(b));
     } else {
         v.sort_by(|a, b| b.cmp(a));
     }
-    v.extend(registers);
     v
 }
 
 fn setup_locals(variables: &[Local]) -> Result<Vec<Code>> {
+    debug(&format!("locals: {:?}", variables));
+
+    let count = locals_count(variables);
     let aligned_bytes = native::local_size_aligned(variables.len() as u32);
     // reserve 8 bytes for every local variables
     let reserve_memory = native::sub_imm(reg::SP, reg::SP, aligned_bytes as i32)?;
-    let init_local: Vec<Code> = variables
-        .iter()
-        .enumerate()
-        .map(|(i, _)| native::store(reg::XZR, reg::FP, native::local_offset(i as u32)))
+
+    let make_frame = native::mov_reg_sp(reg::FP, reg::SP)?;
+
+    let init_local: Vec<Code> = (0..count)
+        .map(|i| native::store(reg::XZR, reg::FP, native::local_offset(i as u32)))
         .collect::<Result<Vec<Code>>>()?;
 
-    let mut v = vec![reserve_memory];
+    let mut v = vec![reserve_memory, make_frame];
     v.extend(init_local);
     Ok(v)
+}
+
+fn locals_count(l: &[Local]) -> u32 {
+    l.iter().fold(0, |a, b| a + b.count())
 }
 
 /// Pop given registers
@@ -165,69 +184,13 @@ mod test {
         let body = &bodies[0];
 
         let expect = {
-            let push_fp = 0xf81f8ffdu32.to_le_bytes();
-            let push_lr = 0xf81f8ffdu32.to_le_bytes();
-            let push_x10 = 0xf81f8feau32.to_le_bytes();
-            let push_x9 = 0xf81f8fe9u32.to_le_bytes();
-            let set_frame_base = 0x910003fdu32.to_le_bytes();
-            let reserve_local = 0xd10043ffu32.to_le_bytes();
-            let mov_10 = 0xd2800149u32.to_le_bytes();
-            let push_10 = 0xf81f8fe9u32.to_le_bytes();
-            let pop_10 = 0xf84087e9u32.to_le_bytes();
-            let set_10 = 0xf90003a9u32.to_le_bytes();
-            let mov_20 = 0xd2800289u32.to_le_bytes();
-            let push_20 = 0xf81f8fe9u32.to_le_bytes();
-            let pop_20 = 0xf84087e9u32.to_le_bytes();
-            let set_20 = 0xf90003a9u32.to_le_bytes();
-            let get_l0 = 0xf94003au32.to_le_bytes();
-            let push_l0 = 0xf81f8feu32.to_le_bytes();
-            let get_l1 = 0xf94007au32.to_le_bytes();
-            let push_l1 = 0xf81f8feu32.to_le_bytes();
-
-            let pop_l0 = 0xf84087e9u32.to_le_bytes();
-            let pop_l1 = 0xf84087eau32.to_le_bytes();
-            let add_l0_l1 = 0x8b0a0129u32.to_le_bytes();
-            let push_res = 0xf81f8fe0u32.to_le_bytes();
-            let clear_local = 0x910043ffu32.to_le_bytes();
-            let pop_res = 0xf84087e0u32.to_le_bytes();
-            let pop_x9 = 0xf84087e9u32.to_le_bytes();
-            let pop_xa = 0xf84087eau32.to_le_bytes();
-            let pop_lr = 0xf84087fdu32.to_le_bytes();
-            let pop_fp = 0xf84087feu32.to_le_bytes();
-            let ret = 0xd65f03c0u32.to_le_bytes();
-
-            vec![
-                push_fp,
-                push_lr,
-                push_x10,
-                push_x9,
-                set_frame_base,
-                reserve_local,
-                mov_10,
-                push_10,
-                pop_10,
-                set_10,
-                mov_20,
-                push_20,
-                pop_20,
-                set_20,
-                get_l0,
-                push_l0,
-                get_l1,
-                push_l1,
-                pop_l0,
-                pop_l1,
-                add_l0_l1,
-                push_res,
-                clear_local,
-                pop_res,
-                pop_x9,
-                pop_xa,
-                pop_lr,
-                pop_fp,
-                ret,
-            ]
-            .concat()
+            use std::fs;
+            use std::io::Read;
+            let mut f =
+                fs::File::open("arm-binaries/test.bin").expect("failed to open test binary file");
+            let mut buf = Vec::new();
+            f.read_to_end(&mut buf);
+            buf
         };
 
         let result = generate_func(body).expect("failed to generate");

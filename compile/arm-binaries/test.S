@@ -8,6 +8,8 @@
 
     // frame
     mov fp, sp
+    str xzr, [x29]
+    str xzr, [x29, #8]
 
     // i32.const 10
     mov x9, #10
@@ -33,7 +35,7 @@
     ldr x9, [sp], #8
     ldr x10, [sp], #8
     add x9, x9, x10
-    str x0, [sp, #-8]!
+    str x9, [sp, #-8]!
 
     // clear frame
     add sp, sp, #16

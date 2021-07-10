@@ -18,8 +18,15 @@ pub fn mov_val(dist: u8, val: i32) -> Result<Code> {
 pub fn mov_reg(dist: u8, src: u8) -> Result<Code> {
     validate_register(dist)?;
     validate_register(src)?;
-    // 1010_1010_000_[src; 5]_0000_00_[XZR; 5 = 11111]_[dist; 5]
+    // 1001_0001_0000_0000_[src; 5]_0000_00_[XZR; 5 = 11111]_[dist; 5]
     Ok((0xaa0003e0 | shl32(src, 16) | dist as u32).to_le_bytes())
+}
+
+pub fn mov_reg_sp(dist: u8, src: u8) -> Result<Code> {
+    validate_register(dist)?;
+    validate_register(src)?;
+    // 1010_1010_0000_0000_0000_00_[src; 5]_[dist; 5]
+    Ok((0x91000000 | shl32(src, 5) | dist as u32).to_le_bytes())
 }
 
 pub fn add_reg(dist: u8, src_n: u8, src_m: u8) -> Result<Code> {
@@ -188,6 +195,14 @@ mod test {
         // mov x1, x2
         let expect = 0xaa0203e1u32.to_le_bytes();
         let result = mov_reg(1, 2).expect("failed to generate");
+        assert_eq!(result, expect);
+    }
+
+    #[test]
+    fn mov_reg_sp_correct() {
+        // mov x1, x2
+        let expect = 0x910003e1u32.to_le_bytes();
+        let result = mov_reg(1, reg::SP).expect("failed to generate");
         assert_eq!(result, expect);
     }
 }
