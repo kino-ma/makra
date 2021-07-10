@@ -1,4 +1,6 @@
 use crate::err::{Error::*, Result};
+use alloc::fmt::Debug;
+use core::convert::TryInto;
 
 use super::reg;
 use super::Code;
@@ -28,6 +30,19 @@ pub fn add(dist: u8, src_n: u8, src_m: u8) -> Result<Code> {
     Ok((0x8b000000u32 | shl32(src_m, 16) | shl32(src_n, 5) | dist as u32).to_le_bytes())
 }
 
+pub fn sub_imm(dist: u8, src: u8, val: i32) -> Result<Code> {
+    validate_register(dist)?;
+    validate_register(src)?;
+
+    // val can be 2^12 at most
+    if val >= 2i32.wrapping_shl(12) {
+        return Err(TooLargeI32(val));
+    }
+
+    // 1101_0001_00_[imm12]_[src; 5]_[dist; 5]
+    Ok((0xd1000000 | shl32(val, 10) | shl32(src, 5) | dist as u32).to_le_bytes())
+}
+
 pub fn push(src: u8) -> Result<Code> {
     // 1111_1000_000_[#imm9]_11_[SP; 5]_[src; 5]
     validate_register(src)?;
@@ -52,8 +67,11 @@ fn validate_register(reg: u8) -> Result<()> {
     }
 }
 
-fn shl32<T: Into<u32>>(x: T, rhs: u32) -> u32 {
-    x.into().wrapping_shl(rhs)
+fn shl32<T: TryInto<u32> + Debug + Copy>(x: T, rhs: u32) -> u32 {
+    match x.try_into() {
+        Ok(x) => x.wrapping_shl(rhs),
+        _ => panic!("failed to convert {:?} to u32", x),
+    }
 }
 
 #[cfg(test)]
