@@ -87,6 +87,14 @@ mod test {
     }
 
     #[test]
+    fn sub_imm_correct() {
+        // add x0, x1, x2
+        let expect = 0xd1000c41u32.to_le_bytes();
+        let result = sub_imm(1, 2, 3).expect("failed to generate");
+        assert_eq!(result, expect);
+    }
+
+    #[test]
     fn push_correct() {
         // push x0
         let expect = 0xf81f8fe1u32.to_le_bytes();
