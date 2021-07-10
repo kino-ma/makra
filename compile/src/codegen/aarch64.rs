@@ -133,25 +133,64 @@ mod test {
 
         let expect = {
             let push_fp = 0xf81f8ffdu32.to_le_bytes();
-            let push_r2 = 0xf81f8fe2u32.to_le_bytes();
-            let push_r1 = 0xf81f8fe1u32.to_le_bytes();
-            let mov10 = 0xd2800140u32.to_le_bytes();
-            let push10 = 0xf81f8fe0u32.to_le_bytes();
-            let mov20 = 0xd2800280u32.to_le_bytes();
-            let push20 = 0xf81f8fe0u32.to_le_bytes();
-            let pop10 = 0xf84087e1u32.to_le_bytes();
-            let pop20 = 0xf84087e2u32.to_le_bytes();
-            let add10_20 = 0x8b020020u32.to_le_bytes();
+            let push_lr = 0xf81f8ffdu32.to_le_bytes();
+            let push_x10 = 0xf81f8feau32.to_le_bytes();
+            let push_x9 = 0xf81f8fe9u32.to_le_bytes();
+            let set_frame_base = 0x910003fdu32.to_le_bytes();
+            let reserve_local = 0xd10043ffu32.to_le_bytes();
+            let mov_10 = 0xd2800149u32.to_le_bytes();
+            let push_10 = 0xf81f8fe9u32.to_le_bytes();
+            let pop_10 = 0xf84087e9u32.to_le_bytes();
+            let set_10 = 0xf90003a9u32.to_le_bytes();
+            let mov_20 = 0xd2800289u32.to_le_bytes();
+            let push_20 = 0xf81f8fe9u32.to_le_bytes();
+            let pop_20 = 0xf84087e9u32.to_le_bytes();
+            let set_20 = 0xf90003a9u32.to_le_bytes();
+            let get_l0 = 0xf94003au32.to_le_bytes();
+            let push_l0 = 0xf81f8feu32.to_le_bytes();
+            let get_l1 = 0xf94007au32.to_le_bytes();
+            let push_l1 = 0xf81f8feu32.to_le_bytes();
+
+            let pop_l0 = 0xf84087e9u32.to_le_bytes();
+            let pop_l1 = 0xf84087eau32.to_le_bytes();
+            let add_l0_l1 = 0x8b0a0129u32.to_le_bytes();
             let push_res = 0xf81f8fe0u32.to_le_bytes();
             let pop_res = 0xf84087e0u32.to_le_bytes();
-            let pop_r1 = 0xf84087e1u32.to_le_bytes();
-            let pop_r2 = 0xf84087e2u32.to_le_bytes();
-            let pop_fp = 0xf84087fdu32.to_le_bytes();
+            let pop_x9 = 0xf84087e9u32.to_le_bytes();
+            let pop_xa = 0xf84087eau32.to_le_bytes();
+            let pop_lr = 0xf84087fdu32.to_le_bytes();
+            let pop_fp = 0xf84087feu32.to_le_bytes();
             let ret = 0xd65f03c0u32.to_le_bytes();
 
             vec![
-                push_fp, push_r2, push_r1, mov10, push10, mov20, push20, pop10, pop20, add10_20,
-                push_res, pop_res, pop_r1, pop_r2, pop_fp, ret,
+                push_fp,
+                push_lr,
+                push_x10,
+                push_x9,
+                set_frame_base,
+                reserve_local,
+                mov_10,
+                push_10,
+                pop_10,
+                set_10,
+                mov_20,
+                push_20,
+                pop_20,
+                set_20,
+                get_l0,
+                push_l0,
+                get_l1,
+                push_l1,
+                pop_l0,
+                pop_l1,
+                add_l0_l1,
+                push_res,
+                pop_res,
+                pop_x9,
+                pop_xa,
+                pop_lr,
+                pop_fp,
+                ret,
             ]
             .concat()
         };
