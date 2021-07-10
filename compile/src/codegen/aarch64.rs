@@ -60,18 +60,6 @@ fn wasm2bin(inst: &Instruction) -> Result<Vec<Code>> {
     }
 }
 
-fn to_le(mut code: Code) -> Code {
-    let mut t = code[3];
-    code[3] = code[0];
-    code[0] = t;
-
-    t = code[2];
-    code[2] = code[1];
-    code[1] = t;
-
-    code
-}
-
 fn create_frame(registers: &[u8], locals: &[Local]) -> Result<Vec<Code>> {
     let mut v = Vec::new();
     v.extend(save_registers(registers)?);
