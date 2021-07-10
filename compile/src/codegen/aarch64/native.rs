@@ -22,12 +22,19 @@ pub fn mov_reg(dist: u8, src: u8) -> Result<Code> {
     Ok((0xaa0003e0 | shl32(src, 16) | dist as u32).to_le_bytes())
 }
 
-pub fn add(dist: u8, src_n: u8, src_m: u8) -> Result<Code> {
+pub fn add_reg(dist: u8, src_n: u8, src_m: u8) -> Result<Code> {
     validate_register(dist)?;
     validate_register(src_n)?;
     validate_register(src_m)?;
     // 1000_1011_[shift; 2]_0_[src_m; 5]_[imm6]_[src_n; 5]_[dist; 5]
     Ok((0x8b000000u32 | shl32(src_m, 16) | shl32(src_n, 5) | dist as u32).to_le_bytes())
+}
+
+pub fn add_imm(dist: u8, src: u8, val: u32) -> Result<Code> {
+    validate_register(dist)?;
+    validate_register(src)?;
+    // 1001_0001_00_[imm12]_[src; 5]_[dist; 5]
+    Ok((0x91000000 | shl32(val, 10) | shl32(src, 5) | dist as u32).to_le_bytes())
 }
 
 pub fn sub_imm(dist: u8, src: u8, val: i32) -> Result<Code> {
@@ -109,10 +116,18 @@ mod test {
     use super::*;
 
     #[test]
-    fn add_correct() {
+    fn add_reg_correct() {
         // add x0, x1, x2
         let expect = 0x8b020020u32.to_le_bytes();
-        let result = add(0, 1, 2).expect("failed to generate");
+        let result = add_reg(0, 1, 2).expect("failed to generate");
+        assert_eq!(result, expect);
+    }
+
+    #[test]
+    fn add_imm_correct() {
+        // add x0, x1, x2
+        let expect = 0x91000c41u32.to_le_bytes();
+        let result = add_imm(1, 2, 3).expect("failed to generate");
         assert_eq!(result, expect);
     }
 
