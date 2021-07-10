@@ -62,7 +62,7 @@ fn wasm2bin(inst: &Instruction) -> Result<Vec<Code>> {
 
         End => Ok(vec![]),
 
-        _ => Err(NotImplemented("instruction")),
+        other => Err(NotImplemented("instruction", Some(format!("{:?}", other)))),
     }
 }
 
@@ -75,7 +75,7 @@ fn create_frame(registers: &[u8], locals: &[Local]) -> Result<Vec<Code>> {
 }
 
 fn clear_frame(registers: &[u8]) -> Result<Vec<Code>> {
-    Err(NotImplemented("clear_frame"))
+    Err(NotImplemented("clear_frame", None))
 }
 
 fn save_registers(registers: &[u8]) -> Result<Vec<Code>> {
