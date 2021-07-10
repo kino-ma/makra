@@ -17,7 +17,7 @@ pub fn generate_func(body: &FuncBody) -> Result<Vec<u8>> {
     let mut v: Vec<u8> = Vec::new();
     // prologue
     // we use r0 to return result
-    let registers = [1, 2];
+    let registers = [9, 10];
     let locals = body.locals();
 
     v.extend(create_frame(&registers, locals)?.concat());
