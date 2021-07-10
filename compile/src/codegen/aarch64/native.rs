@@ -96,6 +96,10 @@ pub fn local_offset(l: u32) -> u32 {
     l * 8
 }
 
+pub fn local_size_aligned(num_local: u32) -> u32 {
+    16 * (num_local / 16 + 1)
+}
+
 fn validate_register(reg: u8) -> Result<()> {
     if reg > 31 {
         Err(InvalidRegister(reg))

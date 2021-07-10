@@ -18,8 +18,9 @@ pub fn generate_func(body: &FuncBody) -> Result<Vec<u8>> {
     // prologue
     // we use r0 to return result
     let registers = [1, 2];
+    let locals = body.locals();
 
-    v.extend(create_frame(&registers, body.locals())?.concat());
+    v.extend(create_frame(&registers, locals)?.concat());
 
     for i in body.code().elements().iter() {
         let code = wasm2bin(i)?;
@@ -29,7 +30,7 @@ pub fn generate_func(body: &FuncBody) -> Result<Vec<u8>> {
     // epilogue
     let mut registers = registers.to_vec();
     registers.push(0);
-    v.extend(clear_frame(&registers)?.concat());
+    v.extend(clear_frame(&registers, &locals)?.concat());
 
     v.extend(native::ret());
 
@@ -49,7 +50,7 @@ fn wasm2bin(inst: &Instruction) -> Result<Vec<Code>> {
         I32Add => {
             let pop_1 = native::pop(1)?;
             let pop_2 = native::pop(2)?;
-            let add_ = native::add(0, 1, 2)?;
+            let add_ = native::add_reg(0, 1, 2)?;
             let push_r0 = native::push(0)?;
             Ok(vec![pop_1, pop_2, add_, push_r0])
         }
@@ -80,29 +81,50 @@ fn create_frame(registers: &[u8], locals: &[Local]) -> Result<Vec<Code>> {
     Ok(v)
 }
 
-fn clear_frame(registers: &[u8]) -> Result<Vec<Code>> {
-    Err(NotImplemented("clear_frame", None))
+fn clear_frame(registers: &[u8], locals: &[Local]) -> Result<Vec<Code>> {
+    let mut v = Vec::new();
+    v.extend(load_registers(registers)?);
+
+    let mem_size = native::local_size_aligned(locals.len() as u32);
+    let destroy_frame = native::add_imm(reg::SP, reg::SP, mem_size)?;
+    v.push(destroy_frame);
+
+    Ok(v)
 }
 
 fn save_registers(registers: &[u8]) -> Result<Vec<Code>> {
-    let mut registers = registers.to_owned();
-    // frame pointer
-    registers.push(reg::FP);
-    // link register; holds return address
-    registers.push(reg::LR);
+    let to_push = frame_registers(registers, false);
+    to_push.iter().copied().map(native::push).collect()
+}
 
-    registers.dedup();
+fn load_registers(registers: &[u8]) -> Result<Vec<Code>> {
+    let to_pop = frame_registers(registers, true);
+    to_pop.iter().copied().map(native::pop).collect()
+}
+
+fn frame_registers(registers: &[u8], ascending: bool) -> Vec<u8> {
+    let mut v = Vec::new();
+    // frame pointer
+    v.push(reg::FP);
+    // link register; holds return address
+    v.push(reg::LR);
+
+    v.dedup();
 
     // sort by reversed order
-    registers.sort_by(|a, b| b.cmp(a));
-
-    registers.iter().copied().map(native::push).collect()
+    if ascending {
+        v.sort();
+    } else {
+        v.sort_by(|a, b| b.cmp(a));
+    }
+    v.extend(registers);
+    v
 }
 
 fn setup_locals(variables: &[Local]) -> Result<Vec<Code>> {
-    let aligned_bytes = 16 * (variables.len() / 16 + 1) as i32;
+    let aligned_bytes = native::local_size_aligned(variables.len() as u32);
     // reserve 8 bytes for every local variables
-    let reserve_memory = native::sub_imm(reg::SP, reg::SP, aligned_bytes)?;
+    let reserve_memory = native::sub_imm(reg::SP, reg::SP, aligned_bytes as i32)?;
     let init_local: Vec<Code> = variables
         .iter()
         .enumerate()
@@ -166,6 +188,7 @@ mod test {
             let pop_l1 = 0xf84087eau32.to_le_bytes();
             let add_l0_l1 = 0x8b0a0129u32.to_le_bytes();
             let push_res = 0xf81f8fe0u32.to_le_bytes();
+            let clear_local = 0x910043ffu32.to_le_bytes();
             let pop_res = 0xf84087e0u32.to_le_bytes();
             let pop_x9 = 0xf84087e9u32.to_le_bytes();
             let pop_xa = 0xf84087eau32.to_le_bytes();
@@ -196,6 +219,7 @@ mod test {
                 pop_l1,
                 add_l0_l1,
                 push_res,
+                clear_local,
                 pop_res,
                 pop_x9,
                 pop_xa,
