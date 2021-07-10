@@ -85,6 +85,10 @@ pub fn ret() -> Code {
     0xd65f03c0u32.to_le_bytes()
 }
 
+pub fn local_offset(l: u32) -> u32 {
+    l * 8
+}
+
 fn validate_register(reg: u8) -> Result<()> {
     if reg > 31 {
         Err(InvalidRegister(reg))

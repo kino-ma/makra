@@ -54,6 +54,12 @@ fn wasm2bin(inst: &Instruction) -> Result<Vec<Code>> {
             Ok(vec![pop_1, pop_2, add_, push_r0])
         }
 
+        GetLocal(l) => {
+            let load_local = native::load(9, reg::FP, native::local_offset(*l))?;
+            let push_local = native::push(9)?;
+            Ok(vec![load_local, push_local])
+        }
+
         End => Ok(vec![]),
 
         _ => Err(NotImplemented("instruction")),
@@ -94,7 +100,7 @@ fn setup_locals(variables: &[Local]) -> Result<Vec<Code>> {
     let init_local: Vec<Code> = variables
         .iter()
         .enumerate()
-        .map(|(i, _)| native::store(reg::XZR, reg::FP, i as u32 * 8))
+        .map(|(i, _)| native::store(reg::XZR, reg::FP, native::local_offset(i as u32)))
         .collect::<Result<Vec<Code>>>()?;
 
     let mut v = vec![reserve_memory];
