@@ -68,6 +68,19 @@ pub fn store(src: u8, target: u8, offset: u32) -> Result<Code> {
     Ok((0xf9000000 | shl32(offset / 8, 10) | shl32(target, 5) | src as u32).to_le_bytes())
 }
 
+pub fn load(dist: u8, target: u8, offset: u32) -> Result<Code> {
+    validate_register(target)?;
+    validate_register(dist)?;
+
+    // offset must be a multiple of 8
+    if offset % 8 != 0 {
+        return Err(InvalidOffsetAlignment(offset, 8));
+    }
+
+    // 1111_1001_01_[imm12]_[target; 5]_[dist; 5]
+    Ok((0xf9400000 | shl32(offset / 8, 10) | shl32(target, 5) | dist as u32).to_le_bytes())
+}
+
 pub fn ret() -> Code {
     0xd65f03c0u32.to_le_bytes()
 }
@@ -128,6 +141,14 @@ mod test {
         // str x1, [x2, #16]
         let expect = 0xf9000841u32.to_le_bytes();
         let result = store(1, 2, 16).expect("failed to generate");
+        assert_eq!(result, expect);
+    }
+
+    #[test]
+    fn load_correct() {
+        // load x1, [x2, #16]
+        let expect = 0xf9400841u32.to_le_bytes();
+        let result = load(1, 2, 16).expect("failed to generate");
         assert_eq!(result, expect);
     }
 

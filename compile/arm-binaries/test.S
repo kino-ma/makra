@@ -3,11 +3,11 @@
     str x10, [sp, #-8]!
     str x9, [sp, #-8]!
 
-    // frame
-    mov fp, sp
-
     // reserve memory for 2 locals
     sub sp, sp, #16
+
+    // frame
+    mov fp, sp
 
     // i32.const 10
     mov x9, #10
