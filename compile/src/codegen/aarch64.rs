@@ -88,7 +88,18 @@ fn save_registers(registers: &[u8]) -> Result<Vec<Code>> {
 }
 
 fn setup_locals(variables: &[Local]) -> Result<Vec<Code>> {
-    Err(NotImplemented("setup_locals"))
+    let aligned_bytes = 16 * (variables.len() / 16 + 1) as i32;
+    // reserve 8 bytes for every local variables
+    let reserve_memory = native::sub_imm(reg::SP, reg::SP, aligned_bytes)?;
+    let init_local: Vec<Code> = variables
+        .iter()
+        .enumerate()
+        .map(|(i, _)| native::store(reg::XZR, reg::FP, i as u32 * 8))
+        .collect::<Result<Vec<Code>>>()?;
+
+    let mut v = vec![reserve_memory];
+    v.extend(init_local);
+    Ok(v)
 }
 
 /// Pop given registers

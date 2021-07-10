@@ -55,6 +55,19 @@ pub fn pop(dist: u8) -> Result<Code> {
     //Ok(to_le([0xe4, 0x9d, dist << 4, 0x04]))
 }
 
+pub fn store(src: u8, target: u8, offset: u32) -> Result<Code> {
+    validate_register(target)?;
+    validate_register(src)?;
+
+    // offset must be a multiple of 8
+    if offset % 8 != 0 {
+        return Err(InvalidOffsetAlignment(offset, 8));
+    }
+
+    // 1111_1001_00_[imm12]_[target; 5]_[src; 5]
+    Ok((0xf9000000 | shl32(offset / 8, 10) | shl32(target, 5) | src as u32).to_le_bytes())
+}
+
 pub fn ret() -> Code {
     0xd65f03c0u32.to_le_bytes()
 }
@@ -107,6 +120,14 @@ mod test {
         // pop x0
         let expect = 0xf84087e0u32.to_le_bytes();
         let result = pop(0).expect("failed to generate");
+        assert_eq!(result, expect);
+    }
+
+    #[test]
+    fn store_correct() {
+        // str x1, [x2, #16]
+        let expect = 0xf9000841u32.to_le_bytes();
+        let result = store(1, 2, 16).expect("failed to generate");
         assert_eq!(result, expect);
     }
 
