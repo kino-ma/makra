@@ -60,6 +60,12 @@ fn wasm2bin(inst: &Instruction) -> Result<Vec<Code>> {
             Ok(vec![load_local, push_local])
         }
 
+        SetLocal(l) => {
+            let pop_value = native::pop(9)?;
+            let store_value = native::store(9, reg::FP, native::local_offset(*l))?;
+            Ok(vec![pop_value, store_value])
+        }
+
         End => Ok(vec![]),
 
         other => Err(NotImplemented("instruction", Some(format!("{:?}", other)))),
