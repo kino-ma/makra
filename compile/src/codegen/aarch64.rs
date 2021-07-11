@@ -75,8 +75,8 @@ pub fn generate_func(body: &FuncBody) -> Result<Vec<u8>> {
     }
 
     // epilogue
-    let mut registers = registers.to_vec();
-    registers.push(0);
+    // pop result
+    v.extend(native::pop(0)?.into_iter());
     v.extend(clear_frame(&registers, &locals)?.concat());
 
     v.extend(native::ret().into_iter());
