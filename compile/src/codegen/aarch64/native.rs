@@ -11,7 +11,7 @@ pub fn mov_val(dist: u8, val: i32) -> Result<Code> {
     if val >= 1i32 << 15 {
         Err(TooLargeI32(val))
     } else {
-        Ok((0xd2800000 | (val as u32) << 5 | dist as u32).to_le_bytes())
+        Ok((0xd2800000 | (val as u32) << 5 | dist as u32).into())
     }
 }
 
@@ -19,14 +19,14 @@ pub fn mov_reg(dist: u8, src: u8) -> Result<Code> {
     validate_register(dist)?;
     validate_register(src)?;
     // 1001_0001_0000_0000_[src; 5]_0000_00_[XZR; 5 = 11111]_[dist; 5]
-    Ok((0xaa0003e0 | shl32(src, 16) | dist as u32).to_le_bytes())
+    Ok((0xaa0003e0 | shl32(src, 16) | dist as u32).into())
 }
 
 pub fn mov_reg_sp(dist: u8, src: u8) -> Result<Code> {
     validate_register(dist)?;
     validate_register(src)?;
     // 1010_1010_0000_0000_0000_00_[src; 5]_[dist; 5]
-    Ok((0x91000000 | shl32(src, 5) | dist as u32).to_le_bytes())
+    Ok((0x91000000 | shl32(src, 5) | dist as u32).into())
 }
 
 pub fn add_reg(dist: u8, src_n: u8, src_m: u8) -> Result<Code> {
@@ -34,14 +34,14 @@ pub fn add_reg(dist: u8, src_n: u8, src_m: u8) -> Result<Code> {
     validate_register(src_n)?;
     validate_register(src_m)?;
     // 1000_1011_[shift; 2]_0_[src_m; 5]_[imm6]_[src_n; 5]_[dist; 5]
-    Ok((0x8b000000u32 | shl32(src_m, 16) | shl32(src_n, 5) | dist as u32).to_le_bytes())
+    Ok((0x8b000000u32 | shl32(src_m, 16) | shl32(src_n, 5) | dist as u32).into())
 }
 
 pub fn add_imm(dist: u8, src: u8, val: u32) -> Result<Code> {
     validate_register(dist)?;
     validate_register(src)?;
     // 1001_0001_00_[imm12]_[src; 5]_[dist; 5]
-    Ok((0x91000000 | shl32(val, 10) | shl32(src, 5) | dist as u32).to_le_bytes())
+    Ok((0x91000000 | shl32(val, 10) | shl32(src, 5) | dist as u32).into())
 }
 
 pub fn sub_imm(dist: u8, src: u8, val: i32) -> Result<Code> {
@@ -54,18 +54,18 @@ pub fn sub_imm(dist: u8, src: u8, val: i32) -> Result<Code> {
     }
 
     // 1101_0001_00_[imm12]_[src; 5]_[dist; 5]
-    Ok((0xd1000000 | shl32(val, 10) | shl32(src, 5) | dist as u32).to_le_bytes())
+    Ok((0xd1000000 | shl32(val, 10) | shl32(src, 5) | dist as u32).into())
 }
 
 pub fn push(src: u8) -> Result<Code> {
     // 1111_1000_000_[#imm9]_11_[SP; 5]_[src; 5]
     validate_register(src)?;
-    Ok((0xf81f8fe0 | shl32(reg::SP, 5) | src as u32).to_le_bytes())
+    Ok((0xf81f8fe0 | shl32(reg::SP, 5) | src as u32).into())
 }
 
 pub fn pop(dist: u8) -> Result<Code> {
     validate_register(dist)?;
-    Ok((0xf84087e0 | shl32(reg::SP, 5) | dist as u32).to_le_bytes())
+    Ok((0xf84087e0 | shl32(reg::SP, 5) | dist as u32).into())
     //Ok(to_le([0xe4, 0x9d, dist << 4, 0x04]))
 }
 
@@ -79,7 +79,7 @@ pub fn store(src: u8, target: u8, offset: u32) -> Result<Code> {
     }
 
     // 1111_1001_00_[imm12]_[target; 5]_[src; 5]
-    Ok((0xf9000000 | shl32(offset / 8, 10) | shl32(target, 5) | src as u32).to_le_bytes())
+    Ok((0xf9000000 | shl32(offset / 8, 10) | shl32(target, 5) | src as u32).into())
 }
 
 pub fn load(dist: u8, target: u8, offset: u32) -> Result<Code> {
@@ -92,11 +92,11 @@ pub fn load(dist: u8, target: u8, offset: u32) -> Result<Code> {
     }
 
     // 1111_1001_01_[imm12]_[target; 5]_[dist; 5]
-    Ok((0xf9400000 | shl32(offset / 8, 10) | shl32(target, 5) | dist as u32).to_le_bytes())
+    Ok((0xf9400000 | shl32(offset / 8, 10) | shl32(target, 5) | dist as u32).into())
 }
 
 pub fn ret() -> Code {
-    0xd65f03c0u32.to_le_bytes()
+    0xd65f03c0u32.into()
 }
 
 pub fn local_offset(l: u32) -> u32 {

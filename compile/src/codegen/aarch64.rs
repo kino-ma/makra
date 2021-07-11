@@ -1,7 +1,7 @@
 mod native;
 mod reg;
 
-use alloc::prelude::v1::*;
+use alloc::{collections::binary_heap::Iter, prelude::v1::*};
 
 use parity_wasm::elements::{
     FuncBody,
@@ -11,7 +11,53 @@ use parity_wasm::elements::{
 
 use crate::err::{Error::*, Result};
 
-pub type Code = [u8; 4];
+pub struct Code {
+    raw: [u8; 4],
+}
+
+use core::fmt::{Debug, Formatter};
+impl Debug for Code {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::result::Result<(), core::fmt::Error> {
+        let hex: u32 = unsafe { core::mem::transmute(self.raw) };
+        f.write_fmt(format_args!("{:x}", hex))
+    }
+}
+
+use core::borrow::Borrow;
+impl Borrow<[u8]> for Code {
+    fn borrow(&self) -> &[u8] {
+        &self.raw[..]
+    }
+}
+
+use core::iter::IntoIterator;
+impl<'a> IntoIterator for &'a Code {
+    type Item = &'a u8;
+    type IntoIter = core::slice::Iter<'a, u8>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.raw.into_iter()
+    }
+}
+
+impl From<u32> for Code {
+    fn from(x: u32) -> Self {
+        Self {
+            raw: x.to_le_bytes(),
+        }
+    }
+}
+
+impl<'a> Into<&'a [u8; 4]> for &'a Code {
+    fn into(self) -> &'a [u8; 4] {
+        &self.raw
+    }
+}
+
+impl PartialEq<[u8; 4]> for Code {
+    fn eq(&self, other: &[u8; 4]) -> bool {
+        &self.raw == other
+    }
+}
 
 pub fn generate_func(body: &FuncBody) -> Result<Vec<u8>> {
     let mut v: Vec<u8> = Vec::new();
@@ -33,7 +79,7 @@ pub fn generate_func(body: &FuncBody) -> Result<Vec<u8>> {
     registers.push(0);
     v.extend(clear_frame(&registers, &locals)?.concat());
 
-    v.extend(native::ret());
+    v.extend(native::ret().into_iter());
 
     Ok(v)
 }
