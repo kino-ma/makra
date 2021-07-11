@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use crate::err::{Error::*, Result};
 use alloc::fmt::Debug;
 use core::convert::TryInto;

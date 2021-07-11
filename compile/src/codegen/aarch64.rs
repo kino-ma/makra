@@ -1,7 +1,7 @@
 mod native;
 mod reg;
 
-use alloc::{collections::binary_heap::Iter, prelude::v1::*};
+use alloc::prelude::v1::*;
 
 use parity_wasm::elements::{
     FuncBody,
@@ -35,7 +35,7 @@ impl<'a> IntoIterator for &'a Code {
     type Item = &'a u8;
     type IntoIter = core::slice::Iter<'a, u8>;
     fn into_iter(self) -> Self::IntoIter {
-        self.raw.into_iter()
+        self.raw.iter()
     }
 }
 
@@ -84,11 +84,11 @@ pub fn generate_func(body: &FuncBody) -> Result<Vec<u8>> {
     Ok(v)
 }
 
-pub fn debug(s: &str) {
+pub fn debug(_s: &str) {
     #[cfg(test)]
     {
         extern crate std;
-        std::println!("{}", s);
+        std::println!("{}", _s);
     }
 }
 
@@ -199,20 +199,6 @@ fn setup_locals(variables: &[Local]) -> Result<Vec<Code>> {
 
 fn locals_count(l: &[Local]) -> u32 {
     l.iter().fold(0, |a, b| a + b.count())
-}
-
-/// Pop given registers
-fn epilogue(registers: &[u8]) -> Result<Vec<Code>> {
-    let mut registers_owned = registers.to_owned();
-    // x29, frame pointer;
-    registers_owned.push(29);
-
-    registers_owned.dedup();
-
-    // sort in reversed order
-    registers_owned.sort();
-
-    registers_owned.iter().copied().map(native::pop).collect()
 }
 
 #[cfg(test)]
