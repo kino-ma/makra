@@ -236,8 +236,8 @@ mod test {
         // push(r0)
         let inst = I32Const(10);
         let expect = {
-            let mov10 = 0xd2800140u32.to_le_bytes();
-            let push10 = 0xf81f8fe0u32.to_le_bytes();
+            let mov10 = 0xd2800149u32.to_le_bytes();
+            let push10 = 0xf81f8fe9u32.to_le_bytes();
             vec![mov10, push10]
         };
         let result = wasm2bin(&inst).expect("failed to convert");
@@ -264,10 +264,10 @@ mod test {
 
         let inst = I32Add;
         let expect = {
-            let pop_n = 0xf84087e1u32.to_le_bytes();
-            let pop_m = 0xf84087e2u32.to_le_bytes();
-            let add10_20 = 0x8b020020u32.to_le_bytes();
-            let push_res = 0xf81f8fe0u32.to_le_bytes();
+            let pop_n = 0xf84087e9u32.to_le_bytes();
+            let pop_m = 0xf84087eau32.to_le_bytes();
+            let add10_20 = 0x8b0a0129u32.to_le_bytes();
+            let push_res = 0xf81f8fe9u32.to_le_bytes();
 
             vec![pop_n, pop_m, add10_20, push_res]
         };

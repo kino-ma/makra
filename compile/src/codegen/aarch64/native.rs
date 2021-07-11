@@ -204,7 +204,7 @@ mod test {
     fn mov_reg_sp_correct() {
         // mov x1, x2
         let expect = 0x910003e1u32.to_le_bytes();
-        let result = mov_reg(1, reg::SP).expect("failed to generate");
+        let result = mov_reg_sp(1, reg::SP).expect("failed to generate");
         assert_eq!(result, expect);
     }
 }
