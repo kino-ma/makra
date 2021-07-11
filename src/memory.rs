@@ -31,7 +31,9 @@ extern "C" {
     static __kernel_heap_end__: usize;
     static __module_text_start__: usize;
     static __module_text_end__: usize;
-    static _binary_compile_wasm_binaries_test_wasm_start: [u8; 30];
+    static _binary_compile_wasm_binaries_test_wasm_start: usize;
+    static _binary_compile_wasm_binaries_test_wasm_end: usize;
+    static _binary_compile_wasm_binaries_test_wasm_size: usize;
 }
 
 #[inline]
@@ -117,5 +119,12 @@ pub fn module_text_end() -> usize {
 }
 
 pub fn wasm_binary() -> &'static [u8] {
-    unsafe { &_binary_compile_wasm_binaries_test_wasm_start }
+    let s = unsafe {
+        let start = &_binary_compile_wasm_binaries_test_wasm_start as *const _ as _;
+        let size = _binary_compile_wasm_binaries_test_wasm_size;
+        let size = if size <= 0 { 40 } else { size };
+        core::slice::from_raw_parts(start, size)
+    };
+    println!("s[0] {}", s[0]);
+    s
 }

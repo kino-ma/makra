@@ -13,7 +13,7 @@ extern crate alloc;
 use core::num::NonZeroUsize;
 
 use alloc::prelude::*;
-use compile::{codegen::sample_binary, Compiler};
+use compile::Compiler;
 
 #[cfg(not(test))]
 #[macro_use]
@@ -65,6 +65,7 @@ fn kernel_main() {
 }
 
 unsafe extern "C" fn call_binary<T>(bin: &[u8]) -> T {
+    asm!("nop");
     let mut func_mem = memory::module_text_start() as *mut u8;
 
     core::ptr::copy(bin.as_ptr(), func_mem, bin.len());
