@@ -2,7 +2,7 @@ use alloc::prelude::v1::*;
 
 use parity_wasm::elements::Module as WasmModule;
 
-use crate::codegen::generate_func;
+use crate::codegen::Generator;
 use crate::err::{
     Error::{Failure, ParseFailure},
     Result,
@@ -28,7 +28,7 @@ impl Module {
         let bodies = self.inner.code_section().ok_or(Failure)?.bodies();
         let v = bodies
             .iter()
-            .map(generate_func)
+            .map(|body| Generator::new(body).generate())
             .try_fold(Vec::new(), |mut v, bin| {
                 v.append(&mut bin?);
                 Ok(v)

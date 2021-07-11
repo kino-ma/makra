@@ -59,29 +59,47 @@ impl PartialEq<[u8; 4]> for Code {
     }
 }
 
-pub fn generate_func(body: &FuncBody) -> Result<Vec<u8>> {
-    let mut v: Vec<u8> = Vec::new();
-    // prologue
-    // we use r0 to return result
-    let registers = [9, 10];
-    let locals = body.locals();
+pub struct Generator {
+    registers: Vec<u8>,
+    locals: Vec<Local>,
+    body: FuncBody,
+}
 
-    v.extend(create_frame(&registers, locals)?.concat());
+impl Generator {
+    pub fn new(body: &FuncBody) -> Self {
+        let registers = vec![9, 10];
+        let locals = body.locals().to_vec();
+        let body = body.clone();
 
-    for i in body.code().elements().iter() {
-        let code = wasm2bin(i)?;
-        debug(&format!("{:?}", code));
-        v.extend(code.concat());
+        Self {
+            registers,
+            locals,
+            body,
+        }
     }
 
-    // epilogue
-    // pop result
-    v.extend(native::pop(0)?.into_iter());
-    v.extend(clear_frame(&registers, &locals)?.concat());
+    pub fn generate(&self) -> Result<Vec<u8>> {
+        let mut v: Vec<u8> = Vec::new();
 
-    v.extend(native::ret().into_iter());
+        // prologue
+        // we use r0 to return result
+        v.extend(create_frame(&self.registers, &self.locals)?.concat());
 
-    Ok(v)
+        for i in self.body.code().elements().iter() {
+            let code = wasm2bin(i)?;
+            debug(&format!("{:?}", code));
+            v.extend(code.concat());
+        }
+
+        // epilogue
+        // pop result
+        v.extend(native::pop(0)?.into_iter());
+        v.extend(clear_frame(&self.registers, &self.locals)?.concat());
+
+        v.extend(native::ret().into_iter());
+
+        Ok(v)
+    }
 }
 
 pub fn debug(_s: &str) {
@@ -225,7 +243,8 @@ mod test {
             buf
         };
 
-        let result = generate_func(body).expect("failed to generate");
+        let generator = Generator::new(body);
+        let result = generator.generate().expect("failed to generate");
 
         assert_eq!(result, expect);
     }
