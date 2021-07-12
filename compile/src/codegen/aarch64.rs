@@ -86,7 +86,7 @@ impl Generator {
         let code = self.body.code().clone();
         for i in code.elements().iter() {
             let code = wasm2bin(&i)?;
-            self.update_stack(&i);
+            self.update_stack(&i)?;
             debug(&format!("{:?}", code));
             v.extend(code.concat());
         }
@@ -107,7 +107,7 @@ impl Generator {
             SetLocal(_) => -1,
             End => 0,
             I32Const(_) | GetLocal(_) => 1,
-            other => return Err(NotImplemented("update_stack", None)),
+            _other => return Err(NotImplemented("update_stack", None)),
         };
         self.increment_stack(count)
     }
