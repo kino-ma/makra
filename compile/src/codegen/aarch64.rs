@@ -234,7 +234,8 @@ fn valence_of(inst: &Instruction) -> Result<isize> {
         SetLocal(_) => Ok(-1),
         End => Ok(0),
         I32Const(_) | GetLocal(_) => Ok(1),
-        _other => return Err(NotImplemented("update_stack", None)),
+        Loop(_type) => Ok(0),
+        _other => return Err(NotImplemented("valance_of", None)),
     }
 }
 
@@ -445,6 +446,22 @@ mod test {
         };
 
         let mut c = Converter::new();
+        let result = c.convert(&inst).expect("failed to convert");
+
+        assert_eq!(result, expect);
+    }
+
+    #[test]
+    fn loop_end() {
+        // end
+        let inst = End;
+        let expect = {
+            let ret: Code = 0x14000000.into();
+            vec![ret]
+        };
+
+        let mut c = Converter::new();
+        c.block_stack.push(0);
         let result = c.convert(&inst).expect("failed to convert");
 
         assert_eq!(result, expect);
