@@ -433,6 +433,23 @@ mod test {
         assert_eq!(result, expect);
     }
 
+    #[test]
+    fn loop_() {
+        // loop
+        use parity_wasm::elements::BlockType;
+        let inst = Loop(BlockType::NoResult);
+        let expect = {
+            let save_lr: Code = 0xf81f8ffeu32.into();
+            let jump_set_lr = 0x94000001.into();
+            vec![save_lr, jump_set_lr]
+        };
+
+        let mut c = Converter::new();
+        let result = c.convert(&inst).expect("failed to convert");
+
+        assert_eq!(result, expect);
+    }
+
     fn get_wasm_binary() -> Vec<u8> {
         use std::fs;
         use std::io::Read;
