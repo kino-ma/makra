@@ -11,6 +11,7 @@ use parity_wasm::elements::{
 
 use crate::err::{Error::*, Result};
 
+#[cfg_attr(test, derive(PartialEq))]
 pub struct Code {
     raw: [u8; 4],
 }
@@ -39,17 +40,11 @@ impl<'a> IntoIterator for &'a Code {
     }
 }
 
-impl From<u32> for Code {
-    fn from(x: u32) -> Self {
+impl<T: Borrow<u32>> From<T> for Code {
+    fn from(x: T) -> Self {
         Self {
-            raw: x.to_le_bytes(),
+            raw: x.borrow().to_le_bytes(),
         }
-    }
-}
-
-impl<'a> Into<&'a [u8; 4]> for &'a Code {
-    fn into(self) -> &'a [u8; 4] {
-        &self.raw
     }
 }
 
@@ -227,7 +222,7 @@ mod test {
     #[test]
     fn func2code() {
         // wasm function to machine code
-        let module: get_wasm_module();
+        let module = get_wasm_module();
         let bodies = module.code_section().expect("no code section").bodies();
         let body = &bodies[0];
 
@@ -247,19 +242,42 @@ mod test {
         assert_eq!(result, expect);
     }
 
+    #[test]
     fn check_create_frame() {
         let expect_bytes = [
-            0xf81f8ffe, 0xf81f8ffd, 0xf81f8fea, 0xf81f8fe9, 0xd10043ff, 0x910003fd, 0xf90003bf,
+            0xf81f8ffeu32,
+            0xf81f8ffd,
+            0xf81f8fea,
+            0xf81f8fe9,
+            0xd10043ff,
+            0x910003fd,
+            0xf90003bf,
             0xf90007bf,
         ];
-        let expect = to_le_code(expect_bytes);
+        let expect = to_le_code(&expect_bytes);
         let registers = &[9, 10];
-        let locals = get_wasm_module()
-            .code_section()
-            .expect("no code section")
-            .bodies()[0]
-            .locals();
-        let result = create_frame(registers, locals);
+        let module = get_wasm_module();
+        let locals = module.code_section().expect("no code section").bodies()[0].locals();
+        let result = create_frame(registers, locals).expect("failed to generate");
+
+        assert_eq!(result, expect);
+    }
+
+    #[test]
+    fn check_clear_frame() {
+        let expect_bytes = [
+            0x910043ffu32,
+            0xf84087e9,
+            0xf84087ea,
+            0xf84087fd,
+            0xf84087fe,
+        ];
+        let expect = to_le_code(&expect_bytes);
+
+        let registers = &[9, 10];
+        let module = get_wasm_module();
+        let locals = module.code_section().expect("no code section").bodies()[0].locals();
+        let result = clear_frame(registers, locals).expect("failed to generate");
 
         assert_eq!(result, expect);
     }
@@ -324,10 +342,10 @@ mod test {
 
     fn get_wasm_module() -> parity_wasm::elements::Module {
         let buf = get_wasm_binary();
-        parity_wasm::deserialize_buffer(buf).expect("failed to parse")
+        parity_wasm::deserialize_buffer(&buf).expect("failed to parse")
     }
 
     fn to_le_code(bytes: &[u32]) -> Vec<Code> {
-        bytes.iter().map(|x| x.to_le_bytes().into()).collect()
+        bytes.iter().map(|x| x.into()).collect()
     }
 }
