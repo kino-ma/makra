@@ -198,6 +198,14 @@ impl Converter {
                 Ok(vec![pop_y, pop_x, sub_two, push_r9])
             }
 
+            I32Ne => {
+                let pop_y = native::pop(10)?;
+                let pop_x = native::pop(9)?;
+                let cmp_by_sub = native::subs(9, 9, 10)?;
+                let push_r9 = native::push(9)?;
+                Ok(vec![pop_y, pop_x, cmp_by_sub, push_r9])
+            }
+
             GetLocal(l) => {
                 let load_local = native::load(9, reg::FP, native::local_offset(*l))?;
                 let push_local = native::push(9)?;
@@ -246,7 +254,7 @@ impl Converter {
 
 fn valence_of(inst: &Instruction) -> Result<isize> {
     match inst {
-        I32Add | I32Sub | SetLocal(_) => Ok(-1),
+        I32Add | I32Sub | I32Ne | SetLocal(_) => Ok(-1),
         End => Ok(0),
         I32Const(_) | GetLocal(_) => Ok(1),
         Loop(_type) => Ok(0),
