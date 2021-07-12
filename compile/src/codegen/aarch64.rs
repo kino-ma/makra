@@ -215,12 +215,19 @@ impl Converter {
                 if self.block_stack.len() <= 1 {
                     Ok(vec![])
                 } else {
-                    let count = self.block_stack.count() as u32;
-                    let unwind_stack = native::add_imm(reg::SP, reg::SP, count * 8)?;
-                    let restore_lr = native::pop(reg::LR)?;
+                    let backward_br = native::branch_reg(reg::LR)?;
 
-                    Ok(vec![unwind_stack, restore_lr])
+                    Ok(vec![backward_br])
                 }
+            }
+
+            Br(label) => {
+                let count = self.block_stack.count() as u32;
+                let unwind_stack = native::add_imm(reg::SP, reg::SP, count * 8)?;
+                let restore_lr = native::pop(reg::LR)?;
+
+                //Ok(vec![unwind_stack, restore_lr]);
+                Err(NotImplemented("br", None))
             }
 
             other => Err(NotImplemented("instruction", Some(format!("{:?}", other)))),

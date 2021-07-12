@@ -97,6 +97,12 @@ pub fn load(dist: u8, target: u8, offset: u32) -> Result<Code> {
     Ok((0xf9400000 | shl32(offset / 8, 10) | shl32(target, 5) | dist as u32).into())
 }
 
+pub fn branch_reg(dist: u8) -> Result<Code> {
+    validate_register(dist)?;
+    // 1101_0110_0001_1111_0000_00_[dist; 5]_0000_0
+    Ok((0xd61f0000 | shl32(dist, 5)).into())
+}
+
 pub fn branch_link(offset: i32) -> Result<Code> {
     // offset must be between +/- 128MB, and offset is shr'ed 2
     let boundary = 128_000_000_i32;
@@ -225,6 +231,14 @@ mod test {
         // bl 124
         let expect = 0x9400001fu32.to_le_bytes();
         let result = branch_link(124).expect("failed to generate");
+        assert_eq!(result, expect);
+    }
+
+    #[test]
+    fn br_correct() {
+        // br x9
+        let expect: Code = 0xd61f0120.into();
+        let result = branch_reg(9).expect("failed to generate");
         assert_eq!(result, expect);
     }
 }
