@@ -75,8 +75,7 @@ impl Generator {
 
     pub fn generate(&self) -> Result<Vec<u8>> {
         let mut v: Vec<u8> = Vec::new();
-        let mut block_stack = BlockStack::new();
-        block_stack.push(None);
+        let mut conv = Converter::new();
 
         // prologue
         // we use r0 to return result
@@ -84,7 +83,7 @@ impl Generator {
 
         let code = self.body.code().clone();
         for i in code.elements().iter() {
-            let code = wasm2bin(&i, &mut block_stack)?;
+            let code = conv.convert(&i)?;
             debug(&format!("{:?}", code));
             v.extend(code.concat());
         }
@@ -107,33 +106,7 @@ impl BlockStack {
         Self(Vec::new())
     }
 
-    pub fn update(&mut self, inst: &Instruction) -> Result<()> {
-        let count = match inst {
-            I32Add => -2,
-            SetLocal(_) => -1,
-            End => 0,
-            I32Const(_) | GetLocal(_) => 1,
-            _other => return Err(NotImplemented("update_stack", None)),
-        };
-        self.increment_stack(count)
-    }
-
-    pub fn push(&mut self, value: Option<usize>) {
-        let value = if let Some(v) = value { v } else { 0 };
-        self.0.push(value);
-    }
-
-    pub fn br(&mut self, label: u32) -> Result<usize> {
-        let len = self.0.len();
-        if len <= label as usize {
-            Err(InvalidStackSubtract(len, label as isize))
-        } else {
-            self.0.truncate(len - label as usize - 1);
-            Ok(len)
-        }
-    }
-
-    fn increment_stack(&mut self, count: isize) -> Result<()> {
+    pub fn update(&mut self, count: isize) -> Result<()> {
         match self.0.last_mut() {
             Some(p) => {
                 if (*p as isize) < -count {
@@ -148,6 +121,20 @@ impl BlockStack {
             None => Err(StackEmpty),
         }
     }
+
+    pub fn push(&mut self, value: usize) {
+        self.0.push(value);
+    }
+
+    pub fn br(&mut self, label: u32) -> Result<usize> {
+        let len = self.0.len();
+        if len <= label as usize {
+            Err(InvalidStackSubtract(len, label as isize))
+        } else {
+            self.0.truncate(len - label as usize - 1);
+            Ok(len)
+        }
+    }
 }
 
 pub fn debug(_s: &str) {
@@ -158,41 +145,63 @@ pub fn debug(_s: &str) {
     }
 }
 
-fn wasm2bin(inst: &Instruction, block_stack: &mut BlockStack) -> Result<Vec<Code>> {
-    block_stack.update(inst)?;
+struct Converter {
+    block_stack: BlockStack,
+}
 
-    // for now, we use r0, r1, r2 to general operations
+impl Converter {
+    pub fn new() -> Self {
+        let mut block_stack = BlockStack::new();
+        block_stack.push(0);
+
+        Self { block_stack }
+    }
+
+    pub fn convert(&mut self, inst: &Instruction) -> Result<Vec<Code>> {
+        self.block_stack.update(valence_of(inst)?);
+
+        match inst {
+            I32Const(x) => {
+                let x = *x;
+                let mov_r0 = native::mov_val(9, x)?;
+                let push_r0 = native::push(9)?;
+                Ok(vec![mov_r0, push_r0])
+            }
+
+            I32Add => {
+                let pop_1 = native::pop(9)?;
+                let pop_2 = native::pop(10)?;
+                let add_ = native::add_reg(9, 9, 10)?;
+                let push_r0 = native::push(9)?;
+                Ok(vec![pop_1, pop_2, add_, push_r0])
+            }
+
+            GetLocal(l) => {
+                let load_local = native::load(9, reg::FP, native::local_offset(*l))?;
+                let push_local = native::push(9)?;
+                Ok(vec![load_local, push_local])
+            }
+
+            SetLocal(l) => {
+                let pop_value = native::pop(9)?;
+                let store_value = native::store(9, reg::FP, native::local_offset(*l))?;
+                Ok(vec![pop_value, store_value])
+            }
+
+            End => Ok(vec![]),
+
+            other => Err(NotImplemented("instruction", Some(format!("{:?}", other)))),
+        }
+    }
+}
+
+fn valence_of(inst: &Instruction) -> Result<isize> {
     match inst {
-        I32Const(x) => {
-            let x = *x;
-            let mov_r0 = native::mov_val(9, x)?;
-            let push_r0 = native::push(9)?;
-            Ok(vec![mov_r0, push_r0])
-        }
-
-        I32Add => {
-            let pop_1 = native::pop(9)?;
-            let pop_2 = native::pop(10)?;
-            let add_ = native::add_reg(9, 9, 10)?;
-            let push_r0 = native::push(9)?;
-            Ok(vec![pop_1, pop_2, add_, push_r0])
-        }
-
-        GetLocal(l) => {
-            let load_local = native::load(9, reg::FP, native::local_offset(*l))?;
-            let push_local = native::push(9)?;
-            Ok(vec![load_local, push_local])
-        }
-
-        SetLocal(l) => {
-            let pop_value = native::pop(9)?;
-            let store_value = native::store(9, reg::FP, native::local_offset(*l))?;
-            Ok(vec![pop_value, store_value])
-        }
-
-        End => Ok(vec![]),
-
-        other => Err(NotImplemented("instruction", Some(format!("{:?}", other)))),
+        I32Add => Ok(-2),
+        SetLocal(_) => Ok(-1),
+        End => Ok(0),
+        I32Const(_) | GetLocal(_) => Ok(1),
+        _other => return Err(NotImplemented("update_stack", None)),
     }
 }
 
