@@ -124,6 +124,16 @@ impl BlockStack {
         self.0.push(value);
     }
 
+    pub fn br(&mut self, label: u32) -> Result<usize> {
+        let len = self.0.len();
+        if len <= label as usize {
+            Err(InvalidStackSubtract(len, label as isize))
+        } else {
+            self.0.truncate(len - label as usize - 1);
+            Ok(len)
+        }
+    }
+
     fn increment_stack(&mut self, count: isize) -> Result<()> {
         match self.0.last_mut() {
             Some(p) => {
