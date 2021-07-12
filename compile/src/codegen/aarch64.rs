@@ -58,7 +58,6 @@ pub struct Generator {
     registers: Vec<u8>,
     locals: Vec<Local>,
     body: FuncBody,
-    block_stack: Vec<usize>,
 }
 
 impl Generator {
@@ -66,18 +65,18 @@ impl Generator {
         let registers = vec![9, 10];
         let locals = body.locals().to_vec();
         let body = body.clone();
-        let block_stack = Vec::new();
 
         Self {
             registers,
             locals,
             body,
-            block_stack,
         }
     }
 
-    pub fn generate(&mut self) -> Result<Vec<u8>> {
+    pub fn generate(&self) -> Result<Vec<u8>> {
         let mut v: Vec<u8> = Vec::new();
+        let mut block_stack = BlockStack::new();
+        block_stack.push(None);
 
         // prologue
         // we use r0 to return result
@@ -86,7 +85,7 @@ impl Generator {
         let code = self.body.code().clone();
         for i in code.elements().iter() {
             let code = wasm2bin(&i)?;
-            self.update_stack(&i)?;
+            block_stack.update(&i)?;
             debug(&format!("{:?}", code));
             v.extend(code.concat());
         }
@@ -100,8 +99,16 @@ impl Generator {
 
         Ok(v)
     }
+}
 
-    fn update_stack(&mut self, inst: &Instruction) -> Result<()> {
+struct BlockStack(Vec<usize>);
+
+impl BlockStack {
+    pub fn new() -> Self {
+        Self(Vec::new())
+    }
+
+    pub fn update(&mut self, inst: &Instruction) -> Result<()> {
         let count = match inst {
             I32Add => -2,
             SetLocal(_) => -1,
@@ -112,15 +119,20 @@ impl Generator {
         self.increment_stack(count)
     }
 
+    pub fn push(&mut self, value: Option<usize>) {
+        let value = if let Some(v) = value { v } else { 0 };
+        self.0.push(value);
+    }
+
     fn increment_stack(&mut self, count: isize) -> Result<()> {
-        match self.block_stack.last_mut() {
+        match self.0.last_mut() {
             Some(p) => {
-                if count < 0 {
-                    *p += count as usize;
-                } else if (*p as isize) < -count {
-                    return Err(TooLittleI32(*p, count as i32));
+                if (*p as isize) < -count {
+                    return Err(InvalidStackSubtract(*p, count));
+                } else if count < 0 {
+                    *p -= -count as usize;
                 } else {
-                    *p -= count as usize;
+                    *p += count as usize;
                 }
                 Ok(())
             }
