@@ -58,6 +58,7 @@ pub struct Generator {
     registers: Vec<u8>,
     locals: Vec<Local>,
     body: FuncBody,
+    block_stack: Vec<usize>,
 }
 
 impl Generator {
@@ -65,11 +66,13 @@ impl Generator {
         let registers = vec![9, 10];
         let locals = body.locals().to_vec();
         let body = body.clone();
+        let block_stack = Vec::new();
 
         Self {
             registers,
             locals,
             body,
+            block_stack,
         }
     }
 
@@ -94,6 +97,33 @@ impl Generator {
         v.extend(native::ret().into_iter());
 
         Ok(v)
+    }
+
+    fn update_stack(&mut self, inst: &Instruction) -> Result<()> {
+        let count = match inst {
+            I32Add => -2,
+            SetLocal(_) => -1,
+            End => 0,
+            I32Const(_) | GetLocal(_) => 1,
+            other => return Err(NotImplemented("update_stack", None)),
+        };
+        self.increment_stack(count)
+    }
+
+    fn increment_stack(&mut self, count: isize) -> Result<()> {
+        match self.block_stack.last_mut() {
+            Some(p) => {
+                if count < 0 {
+                    *p += count as usize;
+                } else if (*p as isize) < -count {
+                    return Err(TooLittleI32(*p, count as i32));
+                } else {
+                    *p -= count as usize;
+                }
+                Ok(())
+            }
+            None => Err(StackEmpty),
+        }
     }
 }
 
