@@ -189,6 +189,15 @@ impl Converter {
                 Ok(vec![pop_y, pop_x, add_, push_r0])
             }
 
+            I32Sub => {
+                let pop_y = native::pop(10)?;
+                let pop_x = native::pop(9)?;
+                // x - y
+                let sub_two = native::add_reg(9, 9, 10)?;
+                let push_r9 = native::push(9)?;
+                Ok(vec![pop_y, pop_x, sub_two, push_r9])
+            }
+
             GetLocal(l) => {
                 let load_local = native::load(9, reg::FP, native::local_offset(*l))?;
                 let push_local = native::push(9)?;
@@ -434,6 +443,22 @@ mod test {
 
             vec![pop_m, pop_n, add10_20, push_res]
         };
+
+        let mut c = Converter::new();
+        c.block_stack.update(2);
+        let result = c.convert(&inst).expect("failed to convert");
+
+        assert_eq!(result, expect);
+    }
+
+    #[test]
+    fn i32_sub() {
+        // i32.sub 20 10
+        // r9 = r9 - r10
+
+        let inst = I32Sub;
+        let expect_bytes = [0xf84087ea, 0xf84087e9, 0xcb0a0129, 0xf81f8fe9];
+        let expect = to_le_code(&expect_bytes);
 
         let mut c = Converter::new();
         c.block_stack.update(2);
