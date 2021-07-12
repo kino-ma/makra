@@ -135,6 +135,15 @@ impl BlockStack {
         }
     }
 
+    pub fn count_with_depth(&self, depth: usize) -> usize {
+        let len = self.len();
+        if self.len() == 0 {
+            return 0;
+        }
+
+        self.0[len - depth - 1..].iter().fold(0, |x, y| x + y)
+    }
+
     pub fn len(&self) -> usize {
         self.0.len()
     }
@@ -238,13 +247,27 @@ impl Converter {
                 }
             }
 
-            Br(label) => {
-                let count = self.block_stack.count() as u32;
+            BrIf(label) => {
+                // We assume that br_if appears only at the end of the block.
+                // So if the condition did not match, just branch to continuation.
+                let pop_cond = native::pop(9)?;
+                let check_if = native::subs_reg(9, 9, reg::XZR)?;
+                let then_break = native::br_ne(4)?;
+                let else_cont = native::branch_reg(reg::LR)?;
+
+                // (# of values in stack) + (LR stored in stack)
+                let count = self.block_stack.count_with_depth(*label as usize) as u32 + label;
                 let unwind_stack = native::add_imm(reg::SP, reg::SP, count * 8)?;
                 let restore_lr = native::pop(reg::LR)?;
 
-                //Ok(vec![unwind_stack, restore_lr]);
-                Err(NotImplemented("br", None))
+                Ok(vec![
+                    pop_cond,
+                    check_if,
+                    then_break,
+                    else_cont,
+                    unwind_stack,
+                    restore_lr,
+                ])
             }
 
             other => Err(NotImplemented("instruction", Some(format!("{:?}", other)))),
@@ -254,7 +277,7 @@ impl Converter {
 
 fn valence_of(inst: &Instruction) -> Result<isize> {
     match inst {
-        I32Add | I32Sub | I32Ne | SetLocal(_) => Ok(-1),
+        I32Add | I32Sub | I32Ne | SetLocal(_) | BrIf(_) => Ok(-1),
         End => Ok(0),
         I32Const(_) | GetLocal(_) => Ok(1),
         Loop(_type) => Ok(0),
