@@ -7,6 +7,35 @@ use core::convert::TryInto;
 use super::reg;
 use super::Code;
 
+pub enum Condition {
+    Equal,
+    NotEqual,
+    GreaterThan,
+    LessThan,
+    GtOrEqual,
+    LtOrEqual,
+    CarrySet,
+    CarryClear,
+    Negative,
+    Positive,
+    Always,
+    Never,
+    SignedOverflow,
+    NoSignedOverflow,
+    UnsignedHigher,
+    UnsignedLowerOrSame,
+}
+
+impl Into<usize> for Condition {
+    fn into(self) -> usize {
+        use Condition::*;
+        match self {
+            NotEqual => 1,
+            _not_implemented => 0,
+        }
+    }
+}
+
 pub fn mov_val(dist: u8, val: i32) -> Result<Code> {
     validate_register(dist)?;
     // 1101_0010_100_[#imm; 16]_[dist; 5]
@@ -135,6 +164,19 @@ pub fn branch_link(offset: i32) -> Result<Code> {
     let encoded_offset = offset.checked_shr(2).ok_or(TooLargeOffset(offset))?;
     // 1001_01_[imm26; shifted right 4]
     Ok((0x94000000 | encoded_offset as u32).into())
+}
+
+pub fn branch_cond(offset: i32, cond: Condition) -> Result<Code> {
+    // offset must be between +/- 1MB, and offset is shr'ed 2
+    let boundary = 1_000_000_i32;
+    if offset < -boundary || boundary < offset {
+        return Err(TooLargeOffset(offset));
+    }
+
+    let encoded_offset = offset.checked_shr(2).ok_or(TooLargeOffset(offset))?;
+    let cond_n: usize = cond.into();
+    // 1001_01_[imm26; shifted right 4]
+    Ok((0x54000001u32 | shl32(encoded_offset, 5) | cond_n as u32).into())
 }
 
 pub fn ret() -> Code {
@@ -278,5 +320,13 @@ mod test {
         let expect: Code = 0xd61f0120.into();
         let result = branch_reg(9).expect("failed to generate");
         assert_eq!(result, expect);
+    }
+
+    #[test]
+    fn br_ne_correct() {
+        // b.ne #4
+        let expect: Code = 0x54000021.into();
+        let result = branch_cond(4, Condition::NotEqual).expect("failed to generate");
+        assert_eq!(result, expect)
     }
 }

@@ -10,6 +10,7 @@ use parity_wasm::elements::{
 };
 
 use crate::err::{Error::*, Result};
+use native::Condition;
 
 #[cfg_attr(test, derive(PartialEq))]
 pub struct Code {
@@ -252,7 +253,7 @@ impl Converter {
                 // So if the condition did not match, just branch to continuation.
                 let pop_cond = native::pop(9)?;
                 let check_if = native::subs_reg(9, 9, reg::XZR)?;
-                let then_break = native::br_ne(4)?;
+                let then_break = native::branch_cond(4, Condition::NotEqual)?;
                 let else_cont = native::branch_reg(reg::LR)?;
 
                 // (# of values in stack) + (LR stored in stack)
