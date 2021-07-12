@@ -193,7 +193,7 @@ impl Converter {
                 let pop_y = native::pop(10)?;
                 let pop_x = native::pop(9)?;
                 // x - y
-                let sub_two = native::add_reg(9, 9, 10)?;
+                let sub_two = native::sub_reg(9, 9, 10)?;
                 let push_r9 = native::push(9)?;
                 Ok(vec![pop_y, pop_x, sub_two, push_r9])
             }
@@ -246,7 +246,7 @@ impl Converter {
 
 fn valence_of(inst: &Instruction) -> Result<isize> {
     match inst {
-        I32Add | SetLocal(_) => Ok(-1),
+        I32Add | I32Sub | SetLocal(_) => Ok(-1),
         End => Ok(0),
         I32Const(_) | GetLocal(_) => Ok(1),
         Loop(_type) => Ok(0),

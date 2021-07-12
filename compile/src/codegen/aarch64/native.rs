@@ -59,6 +59,18 @@ pub fn sub_imm(dist: u8, src: u8, val: i32) -> Result<Code> {
     Ok((0xd1000000 | shl32(val, 10) | shl32(src, 5) | dist as u32).into())
 }
 
+/// sub dist, src_n, src_m.
+/// dist = scr_n - src_m
+pub fn sub_reg(dist: u8, src_n: u8, src_m: u8) -> Result<Code> {
+    validate_register(dist)?;
+    validate_register(src_n)?;
+    validate_register(src_m)?;
+
+    // 1100_1011_000_[src_m; 5]_[imm6; shift]_[src_n; 5]_[dist; 5]
+    TODO test this function and use this function in I32Sub
+    Ok((0xcb000000 | shl32(src_m, 16) | shl32(src_n, 5) | dist as u32).into())
+}
+
 pub fn push(src: u8) -> Result<Code> {
     // 1111_1000_000_[#imm9]_11_[SP; 5]_[src; 5]
     validate_register(src)?;
