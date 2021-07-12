@@ -84,8 +84,7 @@ impl Generator {
 
         let code = self.body.code().clone();
         for i in code.elements().iter() {
-            let code = wasm2bin(&i)?;
-            block_stack.update(&i)?;
+            let code = wasm2bin(&i, &mut block_stack)?;
             debug(&format!("{:?}", code));
             v.extend(code.concat());
         }
@@ -159,7 +158,9 @@ pub fn debug(_s: &str) {
     }
 }
 
-fn wasm2bin(inst: &Instruction) -> Result<Vec<Code>> {
+fn wasm2bin(inst: &Instruction, block_stack: &mut BlockStack) -> Result<Vec<Code>> {
+    block_stack.update(inst)?;
+
     // for now, we use r0, r1, r2 to general operations
     match inst {
         I32Const(x) => {
