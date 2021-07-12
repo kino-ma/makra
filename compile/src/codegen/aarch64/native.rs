@@ -188,7 +188,7 @@ pub fn local_offset(l: u32) -> u32 {
 }
 
 pub fn local_size_aligned(num_local: u32) -> u32 {
-    16 * (num_local / 16 + 1)
+    (num_local / 2 + num_local % 2) * 16
 }
 
 fn validate_register(reg: u8) -> Result<()> {
@@ -328,5 +328,16 @@ mod test {
         let expect: Code = 0x54000021.into();
         let result = branch_cond(4, Condition::NotEqual).expect("failed to generate");
         assert_eq!(result, expect)
+    }
+
+    #[test]
+    fn local_size_aligned_correct() {
+        let expect = 48;
+        let result = local_size_aligned(5);
+        assert_eq!(result, expect);
+
+        let expect = 0;
+        let result = local_size_aligned(0);
+        assert_eq!(result, expect);
     }
 }

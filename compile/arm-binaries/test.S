@@ -36,8 +36,8 @@
     ldr x9, [sp], #8
     str x9, [fp, #16]
 
-    // i32.const 0
-    mov x9, #0
+    // i32.const 5
+    mov x9, #5
     str x9, [sp, #-8]!
     // local.set 3
     ldr x9, [sp], #8
@@ -56,16 +56,16 @@
     ldr x9, [fp, #8]
     str x9, [sp, #-8]!
     // i32.add
-    ldr x9, [sp], #8
     ldr x10, [sp], #8
+    ldr x9, [sp], #8
     add x9, x9, x10
     str x9, [sp, #-8]!
     // local.get 2
-    ldr x9, [fp, #8]
+    ldr x9, [fp, #16]
     str x9, [sp, #-8]!
     // i32.add
-    ldr x9, [sp], #8
     ldr x10, [sp], #8
+    ldr x9, [sp], #8
     add x9, x9, x10
     str x9, [sp, #-8]!
     // local.set 2
@@ -85,9 +85,9 @@
     str x9, [sp, #-8]!
     // local.set 3
     ldr x9, [sp], #8
-    str x9, [fp, #16]
+    str x9, [fp, #24]
     // local.get 3
-    ldr x9, [fp, #8]
+    ldr x9, [fp, #24]
     str x9, [sp, #-8]!
     // i32.const 0
     mov x9, #0
@@ -111,13 +111,17 @@
     ldr lr, [sp], #8
     /* end of block */
 
+    // local.get 2
+    ldr x9, [fp, #16]
+    str x9, [sp, #-8]!
+
     
     /// end
 
     ldr x0, [sp], #8
 
     // clear frame
-    add sp, sp, #16
+    add sp, sp, #32
 
     ldr x9, [sp], #8
     ldr x10, [sp], #8
