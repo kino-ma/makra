@@ -237,12 +237,11 @@ impl Converter {
 
 fn valence_of(inst: &Instruction) -> Result<isize> {
     match inst {
-        I32Add => Ok(-2),
-        SetLocal(_) => Ok(-1),
+        I32Add | SetLocal(_) => Ok(-1),
         End => Ok(0),
         I32Const(_) | GetLocal(_) => Ok(1),
         Loop(_type) => Ok(0),
-        _other => return Err(NotImplemented("valance_of", None)),
+        _other => return Err(NotImplemented("valence_of", Some(format!("{}", _other)))),
     }
 }
 
