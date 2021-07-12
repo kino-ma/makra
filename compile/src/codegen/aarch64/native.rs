@@ -195,6 +195,14 @@ mod test {
     #[test]
     fn sub_reg_correct() {
         // sub x1, x2, x3
+        let expect = 0xeb030041u32.to_le_bytes();
+        let result = subs_reg(1, 2, 3).expect("failed to generate");
+        assert_eq!(result, expect);
+    }
+
+    #[test]
+    fn subs_reg_correct() {
+        // subs x1, x2, x3
         let expect = 0xcb030041u32.to_le_bytes();
         let result = sub_reg(1, 2, 3).expect("failed to generate");
         assert_eq!(result, expect);
