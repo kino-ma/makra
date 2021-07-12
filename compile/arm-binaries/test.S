@@ -101,7 +101,7 @@
     b.NE #4 //todo jump to end of bloc block
 
     // end
-    b lr
+    br lr
 
     /// load 
     add sp, sp, #0

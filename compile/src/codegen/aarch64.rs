@@ -463,7 +463,7 @@ mod test {
         // end
         let inst = End;
         let expect = {
-            let ret: Code = 0x14000000.into();
+            let ret: Code = 0xd61f03c0.into();
             vec![ret]
         };
 
