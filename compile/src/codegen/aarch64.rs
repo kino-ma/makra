@@ -247,7 +247,7 @@ impl Converter {
                 // So if the condition did not match, just branch to continuation.
                 let pop_cond = native::pop(9)?;
                 let check_if = native::subs_reg(9, 9, reg::XZR)?;
-                let then_break = native::branch_cond(4, Condition::NotEqual)?;
+                let then_break = native::branch_cond(8, Condition::Equal)?;
                 let else_cont = native::branch_reg(reg::LR)?;
 
                 // (# of values in stack) + (LR stored in stack)

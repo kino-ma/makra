@@ -30,6 +30,7 @@ impl Into<usize> for Condition {
     fn into(self) -> usize {
         use Condition::*;
         match self {
+            Equal => 0,
             NotEqual => 1,
             _not_implemented => 0,
         }
@@ -175,8 +176,8 @@ pub fn branch_cond(offset: i32, cond: Condition) -> Result<Code> {
 
     let encoded_offset = offset.checked_shr(2).ok_or(TooLargeOffset(offset))?;
     let cond_n: usize = cond.into();
-    // 1001_01_[imm26; shifted right 4]
-    Ok((0x54000001u32 | shl32(encoded_offset, 5) | cond_n as u32).into())
+    // 0101_0100_[imm19]_0_[cond; 4]
+    Ok((0x54000000u32 | shl32(encoded_offset, 5) | cond_n as u32).into())
 }
 
 pub fn ret() -> Code {

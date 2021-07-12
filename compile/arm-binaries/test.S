@@ -101,7 +101,7 @@
     /// assume that br* instruction appears only the end of a block
     ldr x9, [sp], #8
     subs x9, x9, xzr
-    b.NE #4 //todo jump to end of bloc block
+    b.EQ #8 //todo jump to end of bloc block
 
     // end
     br lr
