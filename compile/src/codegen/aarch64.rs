@@ -356,8 +356,10 @@ mod test {
             0xf81f8fe9,
             0xd10043ff,
             0x910003fd,
-            0xf90003bf,
+            0xf90003bf, // init locals
             0xf90007bf,
+            0xf9000bbf,
+            0xf9000fbf,
         ];
         let expect = to_le_code(&expect_bytes);
         let registers = &[9, 10];

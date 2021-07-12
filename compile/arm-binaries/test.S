@@ -12,6 +12,8 @@
     mov fp, sp
     str xzr, [x29]
     str xzr, [x29, #8]
+    str xzr, [x29, #16]
+    str xzr, [x29, #24]
 
     // i32.const 10
     mov x9, #10
