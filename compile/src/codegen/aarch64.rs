@@ -76,15 +76,17 @@ impl Generator {
         }
     }
 
-    pub fn generate(&self) -> Result<Vec<u8>> {
+    pub fn generate(&mut self) -> Result<Vec<u8>> {
         let mut v: Vec<u8> = Vec::new();
 
         // prologue
         // we use r0 to return result
         v.extend(create_frame(&self.registers, &self.locals)?.concat());
 
-        for i in self.body.code().elements().iter() {
-            let code = wasm2bin(i)?;
+        let code = self.body.code().clone();
+        for i in code.elements().iter() {
+            let code = wasm2bin(&i)?;
+            self.update_stack(&i);
             debug(&format!("{:?}", code));
             v.extend(code.concat());
         }
