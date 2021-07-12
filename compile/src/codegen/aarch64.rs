@@ -356,7 +356,9 @@ mod test {
             let push10 = 0xf81f8fe9u32.to_le_bytes();
             vec![mov10, push10]
         };
-        let result = wasm2bin(&inst).expect("failed to convert");
+
+        let mut c = Converter::new();
+        let result = c.convert(&inst).expect("failed to convert");
         assert_eq!(result, expect);
     }
 
@@ -366,7 +368,10 @@ mod test {
         let num = 123456;
         let inst = I32Const(num);
         let expect = TooLargeI32(num);
-        let result = wasm2bin(&inst).expect_err("succeed to parse");
+
+        let mut c = Converter::new();
+        let result = c.convert(&inst);
+
         match result {
             expect => (),
             _ => panic!("invalid error"),
@@ -387,7 +392,10 @@ mod test {
 
             vec![pop_n, pop_m, add10_20, push_res]
         };
-        let result = wasm2bin(&inst).expect("failed to convert");
+
+        let mut c = Converter::new();
+        let result = c.convert(&inst).expect("failed to convert");
+
         assert_eq!(result, expect);
     }
 
