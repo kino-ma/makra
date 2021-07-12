@@ -79,8 +79,8 @@
     mov x9, #1
     str x9, [sp, #-8]!
     // i32.sub
-    ldr x9, [sp], #8
     ldr x10, [sp], #8
+    ldr x9, [sp], #8
     sub x9, x9, x10
     str x9, [sp, #-8]!
     // local.set 3
@@ -93,8 +93,8 @@
     mov x9, #0
     str x9, [sp, #-8]!
     // i32.ne
-    ldr x9, [sp], #8
     ldr x10, [sp], #8
+    ldr x9, [sp], #8
     subs x9, x9, x10
     str x9, [sp, #-8]!
     // br_if

@@ -182,11 +182,11 @@ impl Converter {
             }
 
             I32Add => {
-                let pop_1 = native::pop(9)?;
-                let pop_2 = native::pop(10)?;
+                let pop_y = native::pop(10)?;
+                let pop_x = native::pop(9)?;
                 let add_ = native::add_reg(9, 9, 10)?;
                 let push_r0 = native::push(9)?;
-                Ok(vec![pop_1, pop_2, add_, push_r0])
+                Ok(vec![pop_y, pop_x, add_, push_r0])
             }
 
             GetLocal(l) => {
@@ -427,12 +427,12 @@ mod test {
 
         let inst = I32Add;
         let expect = {
-            let pop_n = 0xf84087e9u32.to_le_bytes();
             let pop_m = 0xf84087eau32.to_le_bytes();
+            let pop_n = 0xf84087e9u32.to_le_bytes();
             let add10_20 = 0x8b0a0129u32.to_le_bytes();
             let push_res = 0xf81f8fe9u32.to_le_bytes();
 
-            vec![pop_n, pop_m, add10_20, push_res]
+            vec![pop_m, pop_n, add10_20, push_res]
         };
 
         let mut c = Converter::new();
