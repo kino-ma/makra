@@ -135,6 +135,14 @@ impl BlockStack {
             Ok(len)
         }
     }
+
+    pub fn count(&self) -> usize {
+        if self.0.len() == 0 {
+            0
+        } else {
+            self.0.last().unwrap().clone()
+        }
+    }
 }
 
 pub fn debug(_s: &str) {
@@ -191,13 +199,19 @@ impl Converter {
             Loop(block_type) => {
                 self.block_stack.push(0);
 
-                let save_lr = native::push(reg::LR);
-                let bl = native::branch_link(4);
-                //when come back, restore lr
-                Err(NotImplemented("loop", None))
+                let save_lr = native::push(reg::LR)?;
+                let bl = native::branch_link(4)?;
+                Ok(vec![save_lr, bl])
+                // when come back, restore lr
             }
 
-            End => Ok(vec![]),
+            End => {
+                let count = self.block_stack.count();
+                let unwind_stack = native::add_imm(reg::SP, reg::SP, count as u32 * 8)?;
+                let restore_lr = native::pop(reg::LR)?;
+
+                Ok(vec![unwind_stack, restore_lr])
+            }
 
             other => Err(NotImplemented("instruction", Some(format!("{:?}", other)))),
         }
