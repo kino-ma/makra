@@ -201,7 +201,7 @@ impl Converter {
             I32Ne => {
                 let pop_y = native::pop(10)?;
                 let pop_x = native::pop(9)?;
-                let cmp_by_sub = native::subs(9, 9, 10)?;
+                let cmp_by_sub = native::subs_reg(9, 9, 10)?;
                 let push_r9 = native::push(9)?;
                 Ok(vec![pop_y, pop_x, cmp_by_sub, push_r9])
             }

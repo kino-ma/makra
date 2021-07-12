@@ -70,6 +70,17 @@ pub fn sub_reg(dist: u8, src_n: u8, src_m: u8) -> Result<Code> {
     Ok((0xcb000000 | shl32(src_m, 16) | shl32(src_n, 5) | dist as u32).into())
 }
 
+/// sub dist, src_n, src_m, setting condition flags .
+/// dist = scr_n - src_m
+pub fn subs_reg(dist: u8, src_n: u8, src_m: u8) -> Result<Code> {
+    validate_register(dist)?;
+    validate_register(src_n)?;
+    validate_register(src_m)?;
+
+    // 1110_1011_000_[src_m; 5]_0000_00_[src_n; 5]_[dist; 5]
+    Ok((0xeb000000 | shl32(src_m, 16) | shl32(src_n, 5) | dist as u32).into())
+}
+
 pub fn push(src: u8) -> Result<Code> {
     // 1111_1000_000_[#imm9]_11_[SP; 5]_[src; 5]
     validate_register(src)?;
