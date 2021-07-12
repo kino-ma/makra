@@ -67,7 +67,6 @@ pub fn sub_reg(dist: u8, src_n: u8, src_m: u8) -> Result<Code> {
     validate_register(src_m)?;
 
     // 1100_1011_000_[src_m; 5]_[imm6; shift]_[src_n; 5]_[dist; 5]
-    TODO test this function and use this function in I32Sub
     Ok((0xcb000000 | shl32(src_m, 16) | shl32(src_n, 5) | dist as u32).into())
 }
 
@@ -179,6 +178,14 @@ mod test {
         // add x0, x1, x2
         let expect = 0xd1000c41u32.to_le_bytes();
         let result = sub_imm(1, 2, 3).expect("failed to generate");
+        assert_eq!(result, expect);
+    }
+
+    #[test]
+    fn sub_reg_correct() {
+        // sub x1, x2, x3
+        let expect = 0xcb030041u32.to_le_bytes();
+        let result = sub_reg(1, 2, 3).expect("failed to generate");
         assert_eq!(result, expect);
     }
 
