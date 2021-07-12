@@ -97,6 +97,18 @@ pub fn load(dist: u8, target: u8, offset: u32) -> Result<Code> {
     Ok((0xf9400000 | shl32(offset / 8, 10) | shl32(target, 5) | dist as u32).into())
 }
 
+pub fn branch_link(offset: i32) -> Result<Code> {
+    // offset must be between +/- 128MB, and offset is shr'ed 2
+    let boundary = 128_000_000_i32;
+    if offset < -boundary || boundary < offset {
+        return Err(TooLargeOffset(offset));
+    }
+
+    let encoded_offset = offset.checked_shr(2).ok_or(TooLargeOffset(offset))?;
+    // 1001_01_[imm26; shifted right 4]
+    Ok((0x94000000 | encoded_offset as u32).into())
+}
+
 pub fn ret() -> Code {
     0xd65f03c0u32.into()
 }
@@ -205,6 +217,14 @@ mod test {
         // mov x1, x2
         let expect = 0x910003e1u32.to_le_bytes();
         let result = mov_reg_sp(1, reg::SP).expect("failed to generate");
+        assert_eq!(result, expect);
+    }
+
+    #[test]
+    fn bl_correct() {
+        // bl 124
+        let expect = 0x9400001fu32.to_le_bytes();
+        let result = branch_link(124).expect("failed to generate");
         assert_eq!(result, expect);
     }
 }
