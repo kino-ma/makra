@@ -90,6 +90,7 @@ impl Generator {
 
         // epilogue
         // pop result
+        // TODO: pop result in End instruction
         v.extend(native::pop(0)?.into_iter());
         v.extend(clear_frame(&self.registers, &self.locals)?.concat());
 
@@ -126,6 +127,18 @@ impl BlockStack {
         self.0.push(value);
     }
 
+    pub fn count(&self) -> usize {
+        if self.len() == 0 {
+            0
+        } else {
+            self.0.last().unwrap().clone()
+        }
+    }
+
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
     pub fn br(&mut self, label: u32) -> Result<usize> {
         let len = self.0.len();
         if len <= label as usize {
@@ -133,14 +146,6 @@ impl BlockStack {
         } else {
             self.0.truncate(len - label as usize - 1);
             Ok(len)
-        }
-    }
-
-    pub fn count(&self) -> usize {
-        if self.0.len() == 0 {
-            0
-        } else {
-            self.0.last().unwrap().clone()
         }
     }
 }
@@ -206,11 +211,16 @@ impl Converter {
             }
 
             End => {
-                let count = self.block_stack.count();
-                let unwind_stack = native::add_imm(reg::SP, reg::SP, count as u32 * 8)?;
-                let restore_lr = native::pop(reg::LR)?;
+                // if function root block, do nothing
+                if self.block_stack.len() <= 1 {
+                    Ok(vec![])
+                } else {
+                    let count = self.block_stack.count() as u32;
+                    let unwind_stack = native::add_imm(reg::SP, reg::SP, count * 8)?;
+                    let restore_lr = native::pop(reg::LR)?;
 
-                Ok(vec![unwind_stack, restore_lr])
+                    Ok(vec![unwind_stack, restore_lr])
+                }
             }
 
             other => Err(NotImplemented("instruction", Some(format!("{:?}", other)))),
