@@ -158,7 +158,7 @@ impl Converter {
     }
 
     pub fn convert(&mut self, inst: &Instruction) -> Result<Vec<Code>> {
-        self.block_stack.update(valence_of(inst)?);
+        self.block_stack.update(valence_of(inst)?)?;
 
         match inst {
             I32Const(x) => {
@@ -186,6 +186,15 @@ impl Converter {
                 let pop_value = native::pop(9)?;
                 let store_value = native::store(9, reg::FP, native::local_offset(*l))?;
                 Ok(vec![pop_value, store_value])
+            }
+
+            Loop(block_type) => {
+                self.block_stack.push(0);
+
+                let save_lr = native::push(reg::LR);
+                let bl = native::branch_link(4);
+                //when come back, restore lr
+                Err(NotImplemented("loop", None))
             }
 
             End => Ok(vec![]),
@@ -394,6 +403,7 @@ mod test {
         };
 
         let mut c = Converter::new();
+        c.block_stack.update(2);
         let result = c.convert(&inst).expect("failed to convert");
 
         assert_eq!(result, expect);
