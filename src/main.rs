@@ -60,18 +60,24 @@ fn kernel_main() {
 
     let wasm_binary = memory::wasm_binary();
 
+    let compile_start = tm.uptime();
     let module = Compiler::parse(wasm_binary).expect("failed to parse wasm binary");
 
     let func_bin = module
         .generate()
         .expect("failed to generate native code from wasm binary");
+    let compile_end = tm.uptime();
+
     let call_start = tm.uptime();
     let call_res: usize = unsafe { call_binary(&func_bin) };
     let call_end = tm.uptime();
 
+    let compile_spent = compile_end - compile_start;
     let call_spent = call_end - call_start;
+    let total_spent = tm.uptime();
 
-    let total_time = tm.uptime();
+    println!("function result: is_prime(32749) = {}", call_res == 0);
+    println!();
 
     println!(
         "boot process took {}.{} ms",
@@ -80,7 +86,13 @@ fn kernel_main() {
     );
     println!();
 
-    println!("function result: is_prime(32749) = {}", call_res == 0);
+    println!(
+        "compile process took {}.{} ms",
+        compile_spent.as_millis(),
+        compile_spent.subsec_micros()
+    );
+    println!();
+
     println!(
         "module call took {}.{} ms",
         call_spent.as_millis(),
@@ -90,8 +102,8 @@ fn kernel_main() {
     println!();
     println!(
         "total: {}.{} ms",
-        total_time.as_millis(),
-        total_time.subsec_micros()
+        total_spent.as_millis(),
+        total_spent.subsec_micros()
     );
 }
 
