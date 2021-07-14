@@ -69,32 +69,28 @@ fn kernel_main() {
     let compile_end = tm.uptime();
 
     let call_start = tm.uptime();
-    let call_res: usize = unsafe { call_binary(&func_bin) };
+    let call_res = is_prime(32749);
     let call_end = tm.uptime();
 
     let compile_spent = compile_end - compile_start;
     let call_spent = call_end - call_start;
     let total_spent = tm.uptime();
 
-    println!("function result: is_prime(32749) = {}", call_res == 0);
+    println!("function result: is_prime(32749) = {}", call_res);
     println!();
 
     println!(
-        "boot process took {}.{} ms",
+        "boot process took: {}.{} ms",
         boot_time.as_millis(),
         boot_time.subsec_micros()
     );
     println!();
 
-    println!(
-        "compile process took {}.{} ms",
-        compile_spent.as_millis(),
-        compile_spent.subsec_micros()
-    );
+    println!("compile process took: -");
     println!();
 
     println!(
-        "module call took {}.{} ms",
+        "function call took: {}.{} ms",
         call_spent.as_millis(),
         call_spent.subsec_micros()
     );
@@ -105,6 +101,18 @@ fn kernel_main() {
         total_spent.as_millis(),
         total_spent.subsec_micros()
     );
+}
+
+fn is_prime(n: usize) -> bool {
+    let mut i = 1;
+    loop {
+        i += 1;
+        if n % i == 0 {
+            break;
+        }
+    }
+
+    return n == i;
 }
 
 unsafe extern "C" fn call_binary<T>(bin: &[u8]) -> T {
