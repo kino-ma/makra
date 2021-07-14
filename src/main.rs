@@ -6,6 +6,8 @@
 #![feature(panic_info_message)]
 #![feature(alloc_prelude)]
 #![feature(alloc_error_handler)]
+#![feature(trait_alias)]
+#![feature(const_fn_fn_ptr_basics)]
 
 #[macro_use]
 extern crate alloc;
@@ -32,6 +34,8 @@ mod panic_wait;
 mod runtime_init;
 #[cfg(not(test))]
 mod driver;
+#[cfg(not(test))]
+mod synchronization;
 
 #[cfg(not(test))]
 #[global_allocator]

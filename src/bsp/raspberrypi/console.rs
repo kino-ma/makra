@@ -1,5 +1,7 @@
-use crate::console;
 use core::fmt;
+
+use crate::{bsp::device_driver, console};
+use super::memory;
 
 /// A mystical, magical device for generating QEMU output out of the void.
 struct QEMUOutput;
