@@ -216,6 +216,16 @@ impl Converter {
                 Ok(vec![pop_y, pop_x, cmp_by_sub, push_r9])
             }
 
+            I32RemU => {
+                let pop_y = native::pop(11)?;
+                let pop_x = native::pop(10)?;
+                let div = native::unsigned_div(9, 10, 11)?;
+                // x9 = x - (y * (x / y)) = x % y
+                let get_rem = native::multi_sub(9, 9, 11, 10)?;
+                let push_res = native::push(9)?;
+                Ok(vec![pop_y, pop_x, div, get_rem, push_res])
+            }
+
             GetLocal(l) => {
                 let load_local = native::load(9, reg::FP, native::local_offset(*l))?;
                 let push_local = native::push(9)?;
