@@ -58,16 +58,7 @@ fn kernel_main() {
     let tm = time_manager();
     let boot_time = tm.uptime();
 
-    println!("kernel started");
-    println!(
-        "boot process took {}.{} ms",
-        boot_time.as_millis(),
-        boot_time.subsec_micros()
-    );
-    println!();
-
     let wasm_binary = memory::wasm_binary();
-    println!("read wasm binary ({} bytes)", wasm_binary.len());
 
     let module = Compiler::parse(wasm_binary).expect("failed to parse wasm binary");
 
@@ -80,11 +71,27 @@ fn kernel_main() {
 
     let call_spent = call_end - call_start;
 
+    let total_time = tm.uptime();
+
+    println!(
+        "boot process took {}.{} ms",
+        boot_time.as_millis(),
+        boot_time.subsec_micros()
+    );
+    println!();
+
     println!("function result: is_prime(32749) = {}", call_res == 0);
     println!(
         "module call took {}.{} ms",
         call_spent.as_millis(),
         call_spent.subsec_micros()
+    );
+
+    println!();
+    println!(
+        "total: {}.{} ms",
+        total_time.as_millis(),
+        total_time.subsec_micros()
     );
 }
 
