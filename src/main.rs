@@ -36,6 +36,8 @@ mod runtime_init;
 mod driver;
 #[cfg(not(test))]
 mod synchronization;
+#[cfg(not(test))]
+mod time;
 
 #[cfg(not(test))]
 #[global_allocator]
@@ -51,6 +53,17 @@ unsafe fn kernel_init() -> ! {
 
 fn kernel_main() {
     println!("Hello QEMU!");
+
+    use time::time_manager;
+    use crate::time::interface::TimeManager;
+
+    let tm = time_manager();
+    let t1 = tm.uptime();
+    println!("uptime: {} ns", t1.as_nanos());
+    let t2 = tm.uptime();
+    println!("uptime: {} ns", t2.as_nanos());
+
+    println!("diff: {} ns", (t2 - t1).as_nanos());
 
     let wasm_binary = memory::wasm_binary();
     println!("read wasm binary: {:x?}", &wasm_binary[..]);
