@@ -27,13 +27,13 @@ mod console;
 #[cfg(not(test))]
 mod cpu;
 #[cfg(not(test))]
+mod driver;
+#[cfg(not(test))]
 mod memory;
 #[cfg(not(test))]
 mod panic_wait;
 #[cfg(not(test))]
 mod runtime_init;
-#[cfg(not(test))]
-mod driver;
 #[cfg(not(test))]
 mod synchronization;
 #[cfg(not(test))]
@@ -54,8 +54,8 @@ unsafe fn kernel_init() -> ! {
 fn kernel_main() {
     println!("Hello QEMU!");
 
-    use time::time_manager;
     use crate::time::interface::TimeManager;
+    use time::time_manager;
 
     let tm = time_manager();
     let t1 = tm.uptime();
@@ -80,7 +80,7 @@ fn kernel_main() {
     let func_bin = module.generate().expect("failed to generate");
     let call_res: usize = unsafe { call_binary(&func_bin) };
 
-    println!("function result: is_prime: {}", call_res != 0);
+    println!("function result: is_prime(100) = {}", call_res == 0);
 }
 
 unsafe extern "C" fn call_binary<T>(bin: &[u8]) -> T {
