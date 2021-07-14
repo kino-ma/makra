@@ -122,7 +122,7 @@ pub fn wasm_binary() -> &'static [u8] {
     let s = unsafe {
         let start = &_binary_compile_wasm_binaries_test_wasm_start as *const _ as _;
         let size = _binary_compile_wasm_binaries_test_wasm_size;
-        let size = if size <= 0 { 72 } else { size };
+        let size = if size <= 0 { 60 } else { size };
         core::slice::from_raw_parts(start, size)
     };
     println!("s[0] {}", s[0]);
