@@ -30,6 +30,8 @@ mod memory;
 mod panic_wait;
 #[cfg(not(test))]
 mod runtime_init;
+#[cfg(not(test))]
+mod driver;
 
 #[cfg(not(test))]
 #[global_allocator]
