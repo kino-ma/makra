@@ -48,39 +48,44 @@ extern crate compile;
 unsafe fn kernel_init() -> ! {
     memory::init();
     kernel_main();
-    panic!("Stopping...")
+    panic!("Finish")
 }
 
 fn kernel_main() {
-    println!("Hello QEMU!");
-
     use crate::time::interface::TimeManager;
     use time::time_manager;
 
     let tm = time_manager();
-    let t1 = tm.uptime();
-    println!("uptime: {} ns", t1.as_nanos());
-    let t2 = tm.uptime();
-    println!("uptime: {} ns", t2.as_nanos());
+    let boot_time = tm.uptime();
 
-    println!("diff: {} ns", (t2 - t1).as_nanos());
+    println!("kernel started");
+    println!(
+        "boot process took {}.{} ms",
+        boot_time.as_millis(),
+        boot_time.subsec_micros()
+    );
+    println!();
 
     let wasm_binary = memory::wasm_binary();
-    println!("read wasm binary: {:x?}", &wasm_binary[..]);
+    println!("read wasm binary ({} bytes)", wasm_binary.len());
 
-    println!(
-        "module address: {:x?} ~ {:x?} ({:x?})",
-        memory::module_text_start(),
-        memory::module_text_end(),
-        memory::module_text_end() - memory::module_text_start()
-    );
+    let module = Compiler::parse(wasm_binary).expect("failed to parse wasm binary");
 
-    let module = Compiler::parse(wasm_binary).expect("failed to parse");
-
-    let func_bin = module.generate().expect("failed to generate");
+    let func_bin = module
+        .generate()
+        .expect("failed to generate native code from wasm binary");
+    let call_start = tm.uptime();
     let call_res: usize = unsafe { call_binary(&func_bin) };
+    let call_end = tm.uptime();
 
-    println!("function result: is_prime(100) = {}", call_res == 0);
+    let call_spent = call_end - call_start;
+
+    println!("function result: is_prime(32749) = {}", call_res == 0);
+    println!(
+        "module call took {}.{} ms",
+        call_spent.as_millis(),
+        call_spent.subsec_micros()
+    );
 }
 
 unsafe extern "C" fn call_binary<T>(bin: &[u8]) -> T {
