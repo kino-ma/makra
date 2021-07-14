@@ -1,7 +1,7 @@
 (module
   (func (result i32) (local i32 i32)
     ;; int n = 2147483647
-    i32.const 14
+    i32.const 2147483647
     local.set 0
 
     ;; int n = 1

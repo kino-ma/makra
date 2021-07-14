@@ -63,6 +63,7 @@ DOCKER_TOOLS = $(DOCKER_CMD) $(DOCKER_IMAGE)
 
 EXEC_QEMU = $(QEMU_BINARY) -M $(QEMU_MACHINE_TYPE)
 
+WASM_SRC = compile/wasm-binaries/test.wat
 WASM_BIN = compile/wasm-binaries/test.wasm
 WASM_OBJ = target/wasm_binary.o
 WASM_LIB = target/libwasm_binary.a
@@ -77,6 +78,9 @@ $(KERNEL_ELF): $(WASM_LIB)
 
 $(KERNEL_BIN): $(KERNEL_ELF)
 	@$(OBJCOPY_CMD) $(KERNEL_ELF) $(KERNEL_BIN)
+
+$(WASM_BIN): $(WASM_SRC)
+	docker run --rm -v $(pwd):/root polkasource/webassembly-wabt wat2wasm /root/test.wat -o /root/test.wasm
 
 $(WASM_OBJ): $(WASM_BIN)
 	mkdir -p target

@@ -4,7 +4,7 @@ fn main() {
     let mut i = 1;
     loop {
         i += 1;
-        if n % i == 0 || i == n {
+        if n % i == 0  {
             break;
         }
     }

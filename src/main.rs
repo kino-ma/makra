@@ -80,7 +80,7 @@ fn kernel_main() {
     let func_bin = module.generate().expect("failed to generate");
     let call_res: usize = unsafe { call_binary(&func_bin) };
 
-    println!("function result: 10 + 20 = {:?}", call_res);
+    println!("function result: is_prime: {}", call_res != 0);
 }
 
 unsafe extern "C" fn call_binary<T>(bin: &[u8]) -> T {
