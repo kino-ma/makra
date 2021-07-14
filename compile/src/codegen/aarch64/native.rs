@@ -111,6 +111,28 @@ pub fn subs_reg(dist: u8, src_n: u8, src_m: u8) -> Result<Code> {
     Ok((0xeb000000 | shl32(src_m, 16) | shl32(src_n, 5) | dist as u32).into())
 }
 
+pub fn multi_sub(dist: u8, mul_x: u8, mul_y: u8, to_subed: u8) -> Result<Code> {
+    validate_register(dist)?;
+    validate_register(mul_x)?;
+    validate_register(mul_y)?;
+    validate_register(to_subed)?;
+
+    // 1001_1011_000_[mul_y; 5]_1_[to_subed; 5]_[mul_x; 5]_[dist; 5]
+    Ok(
+        (0x9b008000 | shl32(mul_y, 16) | shl32(to_subed, 10) | shl32(mul_x, 5) | dist as u32)
+            .into(),
+    )
+}
+
+pub fn unsigned_div(dist: u8, src_n: u8, src_m: u8) -> Result<Code> {
+    validate_register(dist)?;
+    validate_register(src_n)?;
+    validate_register(src_m)?;
+
+    // 1001_1010_110_[src_m; 5]_0000_10_[src_n; 5]_[dist; 5]
+    Ok((0x9ac00800 | shl32(src_m, 16) | shl32(src_n, 5) | dist as u32).into())
+}
+
 pub fn push(src: u8) -> Result<Code> {
     // 1111_1000_000_[#imm9]_11_[SP; 5]_[src; 5]
     validate_register(src)?;
@@ -248,6 +270,22 @@ mod test {
         // subs x1, x2, x3
         let expect = 0xcb030041u32.to_le_bytes();
         let result = sub_reg(1, 2, 3).expect("failed to generate");
+        assert_eq!(result, expect);
+    }
+
+    #[test]
+    fn multi_sub_correct() {
+        // msub x1, x2, x3, x4
+        let expect: Code = 0x9b039041u32.into();
+        let result = multi_sub(1, 2, 3, 4).expect("failed to generate");
+        assert_eq!(result, expect);
+    }
+
+    #[test]
+    fn unsigned_div_correct() {
+        // udiv x1, x2, x3
+        let expect: Code = 0x9ac30841u32.into();
+        let result = unsigned_div(1, 2, 3).expect("failed to generate");
         assert_eq!(result, expect);
     }
 
