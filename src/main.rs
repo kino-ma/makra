@@ -36,6 +36,8 @@ mod runtime_init;
 mod driver;
 #[cfg(not(test))]
 mod synchronization;
+#[cfg(not(test))]
+mod time;
 
 #[cfg(not(test))]
 #[global_allocator]
