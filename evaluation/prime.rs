@@ -1,4 +1,4 @@
-fn is_prime(n: usize) {
+fn is_prime(n: usize) -> bool {
     let mut i = 1;
     loop {
         i += 1;
