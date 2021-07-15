@@ -1,6 +1,6 @@
 (module
-  (func (result i32) (local i32 i32)
-    ;; int n = 2147483647
+  (func (export "is_prime") (result i32) (local i32 i32)
+    ;; int n = 32749
     i32.const 32749
     local.set 0
 

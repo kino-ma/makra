@@ -103,18 +103,6 @@ fn kernel_main() {
     );
 }
 
-fn is_prime(n: usize) -> bool {
-    let mut i = 1;
-    loop {
-        i += 1;
-        if n % i == 0 {
-            break;
-        }
-    }
-
-    return n == i;
-}
-
 unsafe extern "C" fn call_binary<T>(bin: &[u8]) -> T {
     asm!("nop");
     let mut func_mem = memory::module_text_start() as *mut u8;
