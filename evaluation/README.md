@@ -42,7 +42,30 @@ total: 46.46916 ms
 ```
 
 ### Raspberry Pi OS
-OS が提供している機能を利用して，起動直後にバイナリを実行した．
+公開されている Raspberry Pi OS 用 Docker イメージを利用した．
+
+```
+# 実行方法
+docker run -it -v `pwd`/evaluation/sdcard/filesystem.img:/sdcard/filesystem.img lukechilds/dockerpi pi3
+
+# 仮想マシン内
+# 起動処理時間
+systemd-analyzed time
+
+# 実行時間
+strace -c ./prime 
+```
+
+```
+# 起動処理
+2min 29.359
+
+# 実行
+135.547 ms
+
+# 全体
+2min 29.494547
+```
 
 ### ベアメタル
 `prime.rs` で記述されている関数を，デバイスの起動直後に呼び出すようなプログラムを作成した．

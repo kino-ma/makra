@@ -1,4 +1,5 @@
-fn is_prime(n: usize) -> bool {
+fn main() {
+    let n = 32749;
     let mut i = 1;
     loop {
         i += 1;
@@ -7,5 +8,5 @@ fn is_prime(n: usize) -> bool {
         }
     }
 
-    return n == i;
+    println!("function result: {}", n == i);
 }
